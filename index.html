@@ -1,0 +1,2779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Alpha Co. Personnel – Code Name Agony</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#101214">
+  <style>
+    :root {
+      --bg-main: #060707;
+      --bg-header: #101214;
+      --bg-panel: #15181d;
+      --bg-panel-alt: #191d23;
+      --bg-chip: #1f242c;
+
+      --line-soft: #252932;
+      --line-strong: #3a3f4a;
+
+      --text-main: #e5e7ea;
+      --text-soft: #8c9098;
+      --text-dim: #5a606a;
+
+      --accent-orange: #ff8a3c;
+      --accent-orange-soft: rgba(255, 138, 60, 0.18);
+      --accent-amber: #ffc95e;
+      --accent-red: #ff4b5c;
+      --accent-green: #1fd18a;
+      --accent-blue: #4fd5ff;
+
+      --danger: #ff4b5c;
+      --warning: #ffc95e;
+      --success: #1fd18a;
+
+      --radius-lg: 6px;
+      --radius-md: 4px;
+
+      --shadow-soft: 0 0 18px rgba(0, 0, 0, 0.9);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Roboto", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      color: var(--text-main);
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 20% 0%, rgba(255, 138, 60, 0.08) 0, transparent 40%),
+        radial-gradient(circle at 80% 100%, rgba(31, 209, 138, 0.1) 0, transparent 45%),
+        #060707;
+      padding: 0;
+    }
+
+    .top-bar {
+      background: var(--bg-header);
+      border-bottom: 1px solid var(--line-strong);
+      box-shadow: var(--shadow-soft);
+      padding: 6px 24px 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .top-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-block {
+      width: 26px;
+      height: 26px;
+      border-radius: 3px;
+      background: linear-gradient(135deg, #222836, #0d0f12);
+      border: 1px solid #3b404c;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .brand-block::before,
+    .brand-block::after {
+      content: "";
+      position: absolute;
+      inset: 6px 4px;
+      border-radius: 2px;
+      border: 1px solid rgba(91, 97, 110, 0.7);
+    }
+
+    .brand-title {
+      font-family: "Rajdhani", system-ui;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      font-size: 0.78rem;
+      color: var(--text-main);
+    }
+
+    .brand-sub {
+      font-family: "Rajdhani", system-ui;
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      font-size: 0.58rem;
+      color: var(--accent-orange);
+    }
+
+    .top-center {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      font-size: 0.7rem;
+      color: var(--text-soft);
+    }
+
+    .top-label {
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-dim);
+      font-family: "Rajdhani", system-ui;
+      font-size: 0.6rem;
+    }
+
+    .chip {
+      background: var(--bg-chip);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--line-strong);
+      padding: 3px 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.7rem;
+    }
+
+    .chip-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      box-shadow: 0 0 6px rgba(31, 209, 138, 0.8);
+    }
+
+    .top-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.7rem;
+    }
+
+    .status-pill {
+      padding: 3px 10px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--accent-green);
+      color: var(--accent-green);
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-family: "Rajdhani", system-ui;
+      font-size: 0.6rem;
+    }
+
+    .user-pill {
+      padding: 3px 10px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--line-strong);
+      color: var(--text-soft);
+      font-size: 0.7rem;
+    }
+
+    .page {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 14px 20px 24px;
+    }
+
+    main {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 2px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-soft);
+      margin-bottom: 6px;
+      position: relative;
+      padding-left: 14px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .section-header .bar {
+      flex: 1;
+      height: 2px;
+      margin-left: 10px;
+      background: linear-gradient(to right, var(--accent-orange), transparent);
+      transition: opacity 0.15s ease;
+    }
+
+    .section-header::before {
+      content: "▼";
+      position: absolute;
+      left: 0;
+      font-size: 0.7rem;
+      color: var(--text-soft);
+      transition: transform 0.15s ease;
+    }
+
+    .section-header.collapsed::before {
+      content: "▶";
+    }
+
+    .section-header.collapsed .bar {
+      opacity: 0.25;
+    }
+
+    .section-header:hover {
+      color: var(--accent-amber);
+    }
+
+    .collapsed-section {
+      display: none !important;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    @media (max-width: 1150px) {
+      .summary-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 780px) {
+      .summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    .summary-card {
+      background: var(--bg-panel);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--line-soft);
+      box-shadow: var(--shadow-soft);
+      padding: 10px 10px 8px;
+      position: relative;
+      overflow: hidden;
+      cursor: default;
+    }
+
+    .summary-card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: var(--accent-orange);
+      opacity: 0.85;
+    }
+
+    .summary-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-soft);
+      font-family: "Rajdhani", system-ui;
+      margin-bottom: 6px;
+    }
+
+    .summary-tag {
+      border-radius: var(--radius-md);
+      border: 1px solid var(--line-strong);
+      padding: 2px 6px;
+      font-size: 0.62rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    .summary-value {
+      font-family: "Rajdhani", system-ui;
+      font-size: 1.6rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-main);
+    }
+
+    .summary-value.kpi-available { color: var(--success); }
+    .summary-value.kpi-leave { color: var(--warning); }
+    .summary-value.kpi-tad { color: #ff9352; }
+    .summary-value.kpi-med { color: var(--danger); }
+    .summary-value.kpi-ops { color: var(--accent-orange); }
+    .summary-value.kpi-mission,
+    .summary-value.kpi-train { color: var(--accent-blue); }
+
+    .summary-subrow {
+      margin-top: 2px;
+      font-size: 0.7rem;
+      color: var(--text-soft);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .summary-pill {
+      border-radius: var(--radius-md);
+      border: 1px solid var(--line-soft);
+      padding: 2px 6px;
+      font-size: 0.65rem;
+      color: var(--accent-orange);
+    }
+
+    .kpi-number {
+      cursor: pointer;
+      transition: transform 0.1s ease, color 0.15s ease;
+    }
+
+    .kpi-number:hover {
+      transform: translateY(-1px);
+      color: var(--accent-orange);
+    }
+
+    .icon-alert {
+      display: inline-block;
+      position: relative;
+      width: 0;
+      height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-bottom: 9px solid var(--accent-red);
+      margin-left: 6px;
+      top: -1px;
+    }
+
+    .icon-alert::after {
+      content: "!";
+      position: absolute;
+      left: -3px;
+      top: 1px;
+      font-size: 0.5rem;
+      color: #000;
+      font-weight: 700;
+    }
+
+    .icon-med {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      position: relative;
+      margin-left: 6px;
+    }
+
+    .icon-med::before,
+    .icon-med::after {
+      content: "";
+      position: absolute;
+      background: var(--danger);
+    }
+
+    .icon-med::before {
+      left: 4px;
+      top: 1px;
+      width: 2px;
+      height: 8px;
+    }
+
+    .icon-med::after {
+      left: 1px;
+      top: 4px;
+      width: 8px;
+      height: 2px;
+    }
+
+    .file-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 4px;
+      font-size: 0.7rem;
+      color: var(--text-soft);
+    }
+
+    .file-strip-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .file-hint {
+      padding: 4px 8px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--line-soft);
+      background: var(--bg-panel);
+    }
+
+    .file-upload {
+      position: relative;
+      overflow: hidden;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 10px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--accent-orange);
+      background: var(--bg-panel-alt);
+      color: var(--accent-orange);
+      cursor: pointer;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-family: "Rajdhani", system-ui;
+    }
+
+    .file-upload input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .file-name {
+      font-size: 0.7rem;
+      color: var(--text-soft);
+    }
+
+    .two-column {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.6fr);
+      gap: 10px;
+    }
+
+    @media (max-width: 900px) {
+      .two-column {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .panel {
+      background: var(--bg-panel);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--line-soft);
+      box-shadow: var(--shadow-soft);
+      padding: 8px 10px 8px;
+      position: relative;
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(to right, var(--accent-orange), transparent 40%);
+      opacity: 0.75;
+    }
+
+    .panel-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-soft);
+      font-family: "Rajdhani", system-ui;
+      margin-bottom: 4px;
+    }
+
+    .panel-subtext {
+      font-size: 0.7rem;
+      color: var(--text-soft);
+    }
+
+    .legend-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 0.65rem;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--line-soft);
+      background: var(--bg-panel-alt);
+      color: var(--text-soft);
+    }
+
+    .legend-swatch {
+      width: 7px;
+      height: 7px;
+      border-radius: 1px;
+    }
+
+    .sw-available { background: var(--success); }
+    .sw-leave { background: var(--warning); }
+    .sw-tad { background: #ff9352; }
+    .sw-med { background: var(--danger); }
+    .sw-current { background: #ff7c7c; }
+    .sw-future { background: var(--accent-orange); }
+
+    .table-shell {
+      margin-top: 6px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--line-soft);
+      background: #101318;
+      max-height: 360px;
+      overflow: auto;
+      position: relative;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.75rem;
+      min-width: 640px;
+    }
+
+    th,
+    td {
+      padding: 5px 8px;
+      text-align: left;
+      border-bottom: 1px solid #171b23;
+      white-space: nowrap;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      background: #101319;
+      font-family: "Rajdhani", system-ui;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      z-index: 1;
+    }
+
+    tr:nth-child(even) td {
+      background: #0d1016;
+    }
+
+    tr:hover td {
+      background: #181c24;
+    }
+
+    td.numeric {
+      text-align: right;
+    }
+
+    .empty-state {
+      padding: 18px 10px;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-soft);
+    }
+
+    .clickable-number {
+      border: none;
+      background: none;
+      color: var(--accent-amber);
+      cursor: pointer;
+      padding: 0;
+      font: inherit;
+      text-underline-offset: 3px;
+      text-decoration: underline;
+      transition: color 0.15s ease;
+    }
+
+    .clickable-number:hover {
+      color: var(--accent-orange);
+    }
+
+    .clickable-number:disabled {
+      color: var(--text-dim);
+      text-decoration: none;
+      cursor: default;
+    }
+
+    .unit-btn,
+    .squad-btn {
+      border: none;
+      background: none;
+      color: var(--accent-orange);
+      cursor: pointer;
+      padding: 0;
+      font: inherit;
+      text-underline-offset: 3px;
+      text-decoration: underline;
+    }
+
+    .unit-btn:hover,
+    .squad-btn:hover {
+      color: var(--accent-amber);
+    }
+
+    td.unit-cell {
+      border-top: 1px solid var(--accent-orange-soft);
+      font-weight: 500;
+      color: #f0f0f0;
+    }
+
+    .mos-pie-layout {
+      display: grid;
+      grid-template-columns: 220px minmax(0, 1fr);
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    @media (max-width: 900px) {
+      .mos-pie-layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    #mosPieCanvas {
+      background: #0c0f14;
+      border-radius: 4px;
+      border: 1px solid var(--line-soft);
+      cursor: pointer;
+    }
+
+    .mos-pie-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.7rem;
+      margin-bottom: 4px;
+    }
+
+    .mos-pie-color {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+    }
+
+    .matrix-panel {
+      background: var(--bg-panel);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--line-soft);
+      box-shadow: var(--shadow-soft);
+      padding: 8px 10px 10px;
+    }
+
+    .matrix-panel .table-shell {
+      max-height: 340px;
+    }
+
+    .matrix-unit-row td {
+      background: #1d2027;
+      font-family: "Rajdhani", system-ui;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      font-size: 0.7rem;
+      color: var(--accent-amber);
+      border-bottom-color: var(--line-soft);
+      cursor: pointer;
+    }
+
+    .matrix-unit-toggle {
+      margin-right: 6px;
+      display: inline-block;
+      width: 10px;
+    }
+
+    .unit-member-row.hidden {
+      display: none;
+    }
+
+    .cap-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 34px;
+      padding: 2px 4px;
+      border-radius: 3px;
+      border: 1px solid var(--line-soft);
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .cap-chip.on {
+      border-color: var(--success);
+      color: var(--success);
+    }
+
+    .cap-chip.off {
+      border-color: var(--line-soft);
+      color: var(--text-dim);
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 40;
+    }
+
+    .modal-backdrop.show {
+      display: flex;
+    }
+
+    .modal {
+      width: min(880px, calc(100% - 30px));
+      max-height: 80vh;
+      background: #111317;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--accent-orange-soft);
+      box-shadow: 0 0 28px rgba(0, 0, 0, 0.9);
+      display: flex;
+      flex-direction: column;
+      padding: 8px 10px 8px;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line-soft);
+      padding-bottom: 6px;
+      margin-bottom: 6px;
+    }
+
+    .modal-title {
+      font-family: "Rajdhani", system-ui;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 0.78rem;
+      color: var(--accent-orange);
+    }
+
+    .modal-sub {
+      font-size: 0.7rem;
+      color: var(--text-soft);
+      margin-top: 3px;
+    }
+
+    .modal-close {
+      border: 1px solid var(--line-soft);
+      background: #191c23;
+      color: var(--text-soft);
+      border-radius: var(--radius-md);
+      font-size: 0.7rem;
+      padding: 3px 8px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      font-family: "Rajdhani", system-ui;
+    }
+
+    .modal-close:hover {
+      border-color: var(--accent-orange);
+      color: var(--accent-orange);
+    }
+
+    .modal-body {
+      flex: 1;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--line-soft);
+      background: #0e1015;
+      padding: 6px 8px;
+      overflow: auto;
+    }
+
+    .modal-body table {
+      min-width: 620px;
+    }
+
+    .modal-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 6px;
+      margin-top: 6px;
+      border-top: 1px solid var(--line-soft);
+      font-size: 0.68rem;
+      color: var(--text-soft);
+    }
+
+    .badge-count {
+      border-radius: var(--radius-md);
+      border: 1px solid var(--line-soft);
+      padding: 2px 8px;
+      font-size: 0.68rem;
+    }
+
+    .pager {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pager-btn {
+      border-radius: var(--radius-md);
+      border: 1px solid var(--line-soft);
+      background: #191c23;
+      color: var(--text-soft);
+      font-size: 0.68rem;
+      padding: 2px 8px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-family: "Rajdhani", system-ui;
+    }
+
+    .pager-btn:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+
+    .pager-btn:hover:not(:disabled) {
+      border-color: var(--accent-orange);
+      color: var(--accent-orange);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <div class="top-left">
+      <div class="brand-block"></div>
+      <div>
+        <div class="brand-title">ALPHA CO. PERSONNEL</div>
+        <div class="brand-sub">CODE NAME AGONY / STATUS MONITOR</div>
+      </div>
+    </div>
+    <div class="top-center">
+      <div>
+        <div class="top-label">Threat Level</div>
+        <div class="chip">
+          LINK / INTERNAL
+          <span style="height:14px;width:1px;background:#353944;"></span>
+          <span style="font-size:0.65rem;color:var(--accent-amber);">NOMINAL</span>
+        </div>
+      </div>
+      <div>
+        <div class="top-label">Feed</div>
+        <div class="chip">
+          MARINES CSV
+          <span style="height:14px;width:1px;background:#353944;"></span>
+          <span class="chip-dot"></span>
+        </div>
+      </div>
+    </div>
+    <div class="top-right">
+      <div class="status-pill">Active Feeds</div>
+      <div class="user-pill">CONSOLE: OPS-1</div>
+    </div>
+  </div>
+
+  <div class="page">
+    <main>
+      <div class="file-strip">
+        <div class="file-strip-left">
+          <div class="file-hint">
+            <span style="text-transform:uppercase;letter-spacing:0.14em;font-size:0.68rem;color:var(--text-dim);font-family:'Rajdhani',system-ui;">Input</span>
+            &nbsp;Upload Marines CSV exported from <code>staff.xlsx</code>.
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <label class="file-upload">
+            Load CSV
+            <input type="file" id="csvFileInput" accept=".csv" />
+          </label>
+          <div class="file-name" id="fileNameLabel">No file selected</div>
+        </div>
+      </div>
+
+      <!-- FEED STATUS (open) -->
+      <div class="section-header" id="hdrFeed">
+        <span>Feed status</span>
+        <div class="bar"></div>
+      </div>
+
+      <section class="summary-grid">
+        <article class="summary-card" id="cardTotal">
+          <div class="summary-title-row">
+            <span>Total Marines</span>
+            <span class="summary-tag">Marine Count</span>
+          </div>
+          <div class="summary-value kpi-number" id="kpiTotal">0</div>
+          <div class="summary-subrow">
+            <span>All Marines records loaded from CSV.</span>
+          </div>
+        </article>
+
+        <article class="summary-card" id="cardAvailable">
+          <div class="summary-title-row">
+            <span>Available</span>
+            <span class="summary-tag">On Hand</span>
+          </div>
+          <div class="summary-value kpi-available kpi-number" id="kpiAvailable">0</div>
+          <div class="summary-subrow">
+            <span>Status: Present for Duty / On Hand.</span>
+            <span class="summary-pill"><span id="kpiAvailablePct">0%</span> of total</span>
+          </div>
+        </article>
+
+        <article class="summary-card" id="cardLeave">
+          <div class="summary-title-row">
+            <span>Leave</span>
+            <span class="summary-tag">Non-Available</span>
+          </div>
+          <div class="summary-value kpi-leave kpi-number" id="kpiLeave">0</div>
+          <div class="summary-subrow">
+            <span>Status: Leave.</span>
+          </div>
+        </article>
+
+        <article class="summary-card" id="cardTad">
+          <div class="summary-title-row">
+            <span>TAD <span class="icon-alert"></span></span>
+            <span class="summary-tag">Non-Available</span>
+          </div>
+          <div class="summary-value kpi-tad kpi-number" id="kpiTad">0</div>
+          <div class="summary-subrow">
+            <span>Status: Temporary Assigned Duty.</span>
+          </div>
+        </article>
+
+        <article class="summary-card" id="cardMed">
+          <div class="summary-title-row">
+            <span>Light / Limited / Medical <span class="icon-med"></span></span>
+            <span class="summary-tag">Duty Status</span>
+          </div>
+          <div class="summary-value kpi-med kpi-number" id="kpiMed">0</div>
+          <div class="summary-subrow">
+            <span>Includes medical, light, limited duty.</span>
+          </div>
+        </article>
+
+        <article class="summary-card" id="cardOps">
+          <div class="summary-title-row">
+            <span>Committed to Ops</span>
+            <span class="summary-tag">Current / Future</span>
+          </div>
+          <div class="summary-value kpi-ops kpi-number" id="kpiOpsTotal">0</div>
+          <div class="summary-subrow">
+            <span>
+              <button type="button" id="kpiOpsCurrent" class="clickable-number">0</button> current ·
+              <button type="button" id="kpiOpsFuture" class="clickable-number">0</button> future
+            </span>
+          </div>
+        </article>
+
+        <article class="summary-card" id="cardMission">
+          <div class="summary-title-row">
+            <span>Mission Ready</span>
+            <span class="summary-tag">Avail – Ops – Med</span>
+          </div>
+          <div class="summary-value kpi-mission kpi-number" id="kpiMissionReady">0</div>
+          <div class="summary-subrow">
+            <span>Available, not medical, not committed to ops.</span>
+            <span class="summary-pill"><span id="kpiMissionPct">0%</span> of total</span>
+          </div>
+        </article>
+
+        <!-- Training overview boards -->
+        <article class="summary-card" id="cardDrvTrain">
+          <div class="summary-title-row">
+            <span>Drivers</span>
+            <span class="summary-tag">Training</span>
+          </div>
+          <div class="summary-value kpi-train kpi-number" id="kpiDrvPctValue">0%</div>
+          <div class="summary-subrow">
+            <span>HUMVEE / JLTV licensed.</span>
+            <span class="summary-pill" id="kpiDrvCount">0 Marines</span>
+          </div>
+        </article>
+
+        <article class="summary-card" id="cardTcccTrain">
+          <div class="summary-title-row">
+            <span>TCCC Qualified</span>
+            <span class="summary-tag">Medical</span>
+          </div>
+          <div class="summary-value kpi-train kpi-number" id="kpiTcccPctValue">0%</div>
+          <div class="summary-subrow">
+            <span>Any TCCC tier.</span>
+            <span class="summary-pill" id="kpiTcccCount">0 Marines</span>
+          </div>
+        </article>
+
+        <article class="summary-card" id="cardLdrTrain">
+          <div class="summary-title-row">
+            <span>Leadership Courses</span>
+            <span class="summary-tag">PME</span>
+          </div>
+          <div class="summary-value kpi-train kpi-number" id="kpiLdrPctValue">0%</div>
+          <div class="summary-subrow">
+            <span>Corporals Course / Sergeant School.</span>
+            <span class="summary-pill" id="kpiLdrCount">0 Marines</span>
+          </div>
+        </article>
+
+        <!-- Specific training % boards -->
+        <article class="summary-card" id="cardPft">
+          <div class="summary-title-row">
+            <span>PFT</span>
+            <span class="summary-tag">Fitness</span>
+          </div>
+          <div class="summary-value kpi-train kpi-number" id="kpiPftPctValue">0%</div>
+          <div class="summary-subrow">
+            <span>PFT complete.</span>
+            <span class="summary-pill" id="kpiPftCount">0 Marines</span>
+          </div>
+        </article>
+
+        <article class="summary-card" id="cardCft">
+          <div class="summary-title-row">
+            <span>CFT</span>
+            <span class="summary-tag">Fitness</span>
+          </div>
+          <div class="summary-value kpi-train kpi-number" id="kpiCftPctValue">0%</div>
+          <div class="summary-subrow">
+            <span>CFT complete.</span>
+            <span class="summary-pill" id="kpiCftCount">0 Marines</span>
+          </div>
+        </article>
+
+        <article class="summary-card" id="cardArq">
+          <div class="summary-title-row">
+            <span>ARQ</span>
+            <span class="summary-tag">Weapons</span>
+          </div>
+          <div class="summary-value kpi-train kpi-number" id="kpiArqPctValue">0%</div>
+          <div class="summary-subrow">
+            <span>Annual Rifle Qualification.</span>
+            <span class="summary-pill" id="kpiArqCount">0 Marines</span>
+          </div>
+        </article>
+
+        <article class="summary-card" id="cardHtwt">
+          <div class="summary-title-row">
+            <span>Ht / Wt</span>
+            <span class="summary-tag">Standards</span>
+          </div>
+          <div class="summary-value kpi-train kpi-number" id="kpiHtwtPctValue">0%</div>
+          <div class="summary-subrow">
+            <span>Height & Weight current.</span>
+            <span class="summary-pill" id="kpiHtwtCount">0 Marines</span>
+          </div>
+        </article>
+
+        <article class="summary-card" id="cardGas">
+          <div class="summary-title-row">
+            <span>Gas Chamber</span>
+            <span class="summary-tag">CBRNE</span>
+          </div>
+          <div class="summary-value kpi-train kpi-number" id="kpiGasPctValue">0%</div>
+          <div class="summary-subrow">
+            <span>Gas chamber qualification.</span>
+            <span class="summary-pill" id="kpiGasCount">0 Marines</span>
+          </div>
+        </article>
+
+        <article class="summary-card" id="cardSapr">
+          <div class="summary-title-row">
+            <span>SAPR</span>
+            <span class="summary-tag">Annual</span>
+          </div>
+          <div class="summary-value kpi-train kpi-number" id="kpiSaprPctValue">0%</div>
+          <div class="summary-subrow">
+            <span>Sexual Assault Prevention & Response.</span>
+            <span class="summary-pill" id="kpiSaprCount">0 Marines</span>
+          </div>
+        </article>
+
+        <article class="summary-card" id="cardCyber">
+          <div class="summary-title-row">
+            <span>Cyber / PII</span>
+            <span class="summary-tag">IA</span>
+          </div>
+          <div class="summary-value kpi-train kpi-number" id="kpiCyberPctValue">0%</div>
+          <div class="summary-subrow">
+            <span>Cyber Awareness / PII.</span>
+            <span class="summary-pill" id="kpiCyberCount">0 Marines</span>
+          </div>
+        </article>
+
+        <article class="summary-card" id="cardRecords">
+          <div class="summary-title-row">
+            <span>Records Mgmt</span>
+            <span class="summary-tag">Compliance</span>
+          </div>
+          <div class="summary-value kpi-train kpi-number" id="kpiRecordsPctValue">0%</div>
+          <div class="summary-subrow">
+            <span>Records management training.</span>
+            <span class="summary-pill" id="kpiRecordsCount">0 Marines</span>
+          </div>
+        </article>
+
+        <article class="summary-card" id="cardPac">
+          <div class="summary-title-row">
+            <span>PAC</span>
+            <span class="summary-tag">Admin</span>
+          </div>
+          <div class="summary-value kpi-train kpi-number" id="kpiPacPctValue">0%</div>
+          <div class="summary-subrow">
+            <span>PAC training.</span>
+            <span class="summary-pill" id="kpiPacCount">0 Marines</span>
+          </div>
+        </article>
+
+        <article class="summary-card" id="cardUmapit">
+          <div class="summary-title-row">
+            <span>UMAPIT</span>
+            <span class="summary-tag">Admin</span>
+          </div>
+          <div class="summary-value kpi-train kpi-number" id="kpiUmapitPctValue">0%</div>
+          <div class="summary-subrow">
+            <span>UMAPIT training.</span>
+            <span class="summary-pill" id="kpiUmapitCount">0 Marines</span>
+          </div>
+        </article>
+
+        <article class="summary-card" id="cardRisk">
+          <div class="summary-title-row">
+            <span>Risk Mgmt</span>
+            <span class="summary-tag">Safety</span>
+          </div>
+          <div class="summary-value kpi-train kpi-number" id="kpiRiskPctValue">0%</div>
+          <div class="summary-subrow">
+            <span>Risk Management training.</span>
+            <span class="summary-pill" id="kpiRiskCount">0 Marines</span>
+          </div>
+        </article>
+
+        <article class="summary-card" id="cardOpsec">
+          <div class="summary-title-row">
+            <span>OPSEC</span>
+            <span class="summary-tag">Security</span>
+          </div>
+          <div class="summary-value kpi-train kpi-number" id="kpiOpsecPctValue">0%</div>
+          <div class="summary-subrow">
+            <span>Operations Security training.</span>
+            <span class="summary-pill" id="kpiOpsecCount">0 Marines</span>
+          </div>
+        </article>
+
+        <article class="summary-card" id="cardLv1At">
+          <div class="summary-title-row">
+            <span>LV 1 AT</span>
+            <span class="summary-tag">Force Prot</span>
+          </div>
+          <div class="summary-value kpi-train kpi-number" id="kpiLv1AtPctValue">0%</div>
+          <div class="summary-subrow">
+            <span>Level 1 AT.</span>
+            <span class="summary-pill" id="kpiLv1AtCount">0 Marines</span>
+          </div>
+        </article>
+
+        <article class="summary-card" id="cardCiar">
+          <div class="summary-title-row">
+            <span>CIAR</span>
+            <span class="summary-tag">Intel</span>
+          </div>
+          <div class="summary-value kpi-train kpi-number" id="kpiCiarPctValue">0%</div>
+          <div class="summary-subrow">
+            <span>Counterintelligence / Awareness.</span>
+            <span class="summary-pill" id="kpiCiarCount">0 Marines</span>
+          </div>
+        </article>
+
+        <article class="summary-card" id="cardLles">
+          <div class="summary-title-row">
+            <span>LLES</span>
+            <span class="summary-tag">Legal</span>
+          </div>
+          <div class="summary-value kpi-train kpi-number" id="kpiLlesPctValue">0%</div>
+          <div class="summary-subrow">
+            <span>Legal / Ethics training.</span>
+            <span class="summary-pill" id="kpiLlesCount">0 Marines</span>
+          </div>
+        </article>
+      </section>
+
+      <!-- STRUCTURE OVERVIEW (open) -->
+      <div class="section-header" id="hdrStructure" style="margin-top:10px;">
+        <span>Structure overview</span>
+        <div class="bar"></div>
+      </div>
+
+      <section class="two-column">
+        <!-- MOS TABLE -->
+        <div class="panel">
+          <div class="panel-title-row">
+            <span>MOS Distribution</span>
+            <div class="legend-row">
+              <div class="legend-item"><span class="legend-swatch sw-available"></span>Avail</div>
+              <div class="legend-item"><span class="legend-swatch sw-leave"></span>Leave</div>
+              <div class="legend-item"><span class="legend-swatch sw-tad"></span>TAD</div>
+              <div class="legend-item"><span class="legend-swatch sw-med"></span>Med/LLD</div>
+              <div class="legend-item"><span class="legend-swatch sw-current"></span>Current Ops</div>
+              <div class="legend-item"><span class="legend-swatch sw-future"></span>Future Ops</div>
+            </div>
+          </div>
+          <div class="table-shell" id="mosTableWrapper">
+            <div class="empty-state" id="mosEmpty">
+              Awaiting feed. Upload CSV to view MOS breakdown.
+            </div>
+            <table id="mosTable" class="hidden">
+              <thead>
+                <tr>
+                  <th>MOS</th>
+                  <th class="numeric">Total</th>
+                  <th class="numeric">Available</th>
+                  <th class="numeric">Leave</th>
+                  <th class="numeric">TAD</th>
+                  <th class="numeric">Med / Lmt</th>
+                  <th class="numeric">Current Ops</th>
+                  <th class="numeric">Future Ops</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- UNIT BOARD -->
+        <div class="panel">
+          <div class="panel-title-row">
+            <span>Unit Board</span>
+            <span class="panel-subtext">Click a unit name to drill into Section / Squad / Team.</span>
+          </div>
+          <div class="table-shell" id="unitTableWrapper">
+            <div class="empty-state" id="unitEmpty">
+              Awaiting feed. Upload CSV to view unit topology.
+            </div>
+            <table id="unitTable" class="hidden">
+              <thead>
+                <tr>
+                  <th>Unit</th>
+                  <th class="numeric">Total</th>
+                  <th class="numeric">Available</th>
+                  <th class="numeric">Not Available</th>
+                  <th class="numeric">Committed Ops</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+
+            <div id="unitDetailWrapper" class="hidden" style="border-top:1px solid #22252d;">
+              <div class="panel-title-row" style="padding:6px 8px 2px;">
+                <span id="unitBreakTitle">Unit detail</span>
+                <span class="panel-subtext">Tap counts for name list.</span>
+              </div>
+              <div class="table-shell" style="border:none;border-radius:0 0 4px 4px;max-height:190px;">
+                <table id="unitDetailTable">
+                  <thead>
+                    <tr>
+                      <th>Section</th>
+                      <th>Squad</th>
+                      <th>Team</th>
+                      <th class="numeric">Total</th>
+                      <th class="numeric">Available</th>
+                      <th class="numeric">Not Available</th>
+                      <th class="numeric">Committed Ops</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- MOS DONUT (collapsed by default) -->
+      <div class="section-header" id="hdrMosPct" style="margin-top:10px;">
+        <span>MOS distribution – percentage</span>
+        <div class="bar"></div>
+      </div>
+      <section class="panel" id="sectionMosPct">
+        <div class="mos-pie-layout">
+          <canvas id="mosPieCanvas" width="260" height="190"></canvas>
+          <div>
+            <div class="panel-subtext">
+              Click a donut segment to select; double-click or right-click to open the MOS detail list.
+            </div>
+            <div id="mosPieInfo" class="panel-subtext" style="margin-top:8px;color:var(--accent-amber);">
+              No MOS selected. Click on the donut to inspect.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FULL CAPABILITY MATRIX (collapsed by default) -->
+      <div class="section-header" id="hdrMatrix" style="margin-top:10px;">
+        <span>Marines capability matrix</span>
+        <div class="bar"></div>
+      </div>
+
+      <section class="matrix-panel" id="sectionMatrix">
+        <div class="panel-subtext" style="margin-bottom:6px;">
+          Grouped by UNIT. Click a unit row to expand or collapse its Marines and view full capability data.
+        </div>
+        <div class="table-shell" id="fullBoardWrapper">
+          <div class="empty-state" id="fullBoardEmpty">
+            Awaiting feed. Upload CSV to display full individual data.
+          </div>
+          <table id="fullBoardTable" class="hidden">
+            <thead>
+              <tr id="fullBoardHeaderRow"></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- TEAM READINESS (collapsed by default) -->
+      <div class="section-header" id="hdrTeam" style="margin-top:10px;">
+        <span>Team readiness & capabilities</span>
+        <div class="bar"></div>
+      </div>
+      <section class="panel" id="sectionTeam">
+        <div class="panel-subtext" style="margin-bottom:6px;">
+          Grouped by Squad. Click a squad to display its Teams and capabilities (DRV = licensed driver, TCCC = medical capability, LDR = leadership course, MCEN/TIE = account access).
+        </div>
+        <div class="table-shell" id="teamTableWrapper">
+          <div class="empty-state" id="teamEmpty">
+            Awaiting feed. Upload CSV to view team readiness.
+          </div>
+          <table id="teamTable" class="hidden">
+            <thead>
+              <tr>
+                <th>Unit</th>
+                <th>Section</th>
+                <th>Squad</th>
+                <th class="numeric">Total</th>
+                <th class="numeric">Available</th>
+                <th class="numeric">Not Avail</th>
+                <th class="numeric">Committed Ops</th>
+                <th>DRV</th>
+                <th>TCCC</th>
+                <th>LDR</th>
+                <th>MS-U</th>
+                <th>MN-U</th>
+                <th>MN-A</th>
+                <th>MS-A</th>
+                <th>TN-U</th>
+                <th>TN-UA</th>
+                <th>TN-SA</th>
+                <th>TS-U</th>
+                <th>TS-UA</th>
+                <th>TS-SA</th>
+                <th>TNS-U</th>
+                <th>TNS-UA</th>
+                <th>TNS-SA</th>
+                <th>TN-NA</th>
+                <th>TS-NA</th>
+                <th>TNA-NA</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+
+          <div id="teamDetailWrapper" class="hidden" style="border-top:1px solid #22252d;">
+            <div class="panel-title-row" style="padding:6px 8px 2px;">
+              <span id="teamBreakTitle">Squad detail</span>
+              <span class="panel-subtext">Teams within squad and their capabilities (accounts per team).</span>
+            </div>
+            <div class="table-shell" style="border:none;border-radius:0 0 4px 4px;max-height:210px;">
+              <table id="teamDetailTable">
+                <thead>
+                  <tr>
+                    <th>Team</th>
+                    <th class="numeric">Total</th>
+                    <th class="numeric">Available</th>
+                    <th class="numeric">Not Avail</th>
+                    <th class="numeric">Committed Ops</th>
+                    <th>DRV</th>
+                    <th>TCCC</th>
+                    <th>LDR</th>
+                    <th>MS-U</th>
+                    <th>MN-U</th>
+                    <th>MN-A</th>
+                    <th>MS-A</th>
+                    <th>TN-U</th>
+                    <th>TN-UA</th>
+                    <th>TN-SA</th>
+                    <th>TS-U</th>
+                    <th>TS-UA</th>
+                    <th>TS-SA</th>
+                    <th>TNS-U</th>
+                    <th>TNS-UA</th>
+                    <th>TNS-SA</th>
+                    <th>TN-NA</th>
+                    <th>TS-NA</th>
+                    <th>TNA-NA</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- DETAIL MODAL -->
+  <div class="modal-backdrop" id="detailModalBackdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title" id="detailTitle">Detail View</div>
+          <div class="modal-sub" id="detailSubtitle"></div>
+        </div>
+        <button class="modal-close" onclick="closeDetailModal()">Close</button>
+      </div>
+      <div class="modal-body" id="detailBody"></div>
+      <div class="modal-footer">
+        <div>
+          <span class="badge-count" id="detailCountBadge">0 Marines</span>
+        </div>
+        <div class="pager">
+          <button class="pager-btn" id="btnPrevPage">Prev</button>
+          <span id="pageInfo">Page 1 / 1</span>
+          <button class="pager-btn" id="btnNextPage">Next</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let personnel = [];
+
+    let detailList = [];
+    const detailPageSize = 20;
+    let detailCurrentPage = 1;
+
+    let mosStats = [];
+    let mosPieSlices = [];
+    let mosPieSelectedIndex = -1;
+
+    const MOS_DONUT_OUTER = 70;
+    const MOS_DONUT_INNER = 40;
+
+    const fullColumns = [
+      "UNIT","Rank","Last Name","First Name","EDIPI","Email","BIC","Status",
+      "Status Start","Status End Date","MOS","Billet","Clearance","Section",
+      "Squad","Team",
+      "MCEN-S USER","MCEN-N USER","MCEN-N ADMIN","MCEN-S ADMIN",
+      "TIE-N USER","TIE-N UA","TIE-N SA","TIE-S USER","TIE-S UA","TIE-S SA",
+      "TIE-NS USER","TIE-NS UA","TIE-NS SA","TIE-N NA","TIE-S NA","TIE-NA NA",
+      "PFT","CFT","ARQ","HEIGHT AND WEIGHT","GAS CHAMBER",
+      "SAPR","CYBER AWARENESS/PII","RECORDS MANAGEMENT","PAC","UMAPIT",
+      "RISK MANAGEMENT","OPSEC","LV 1 AT","CIAR","LLES","CORPORALS COURSE",
+      "SERGEANT SCHOOL","CPTR","HUMVEE LICENSE","JLTV LICENSE","MAI","MCWST",
+      "TCCC TIER 1","TCCC TIER 2","TCCC TIER 3","TCCC TIER 4",
+      "Current Operation","Current Operation : Start Time","Current Operation : End Time",
+      "Future Operation","Future Operation: Start Time","Future Operation: End Time"
+    ];
+
+    const trainingFields = [
+      { id: "Pft", label: "PFT", col: "PFT" },
+      { id: "Cft", label: "CFT", col: "CFT" },
+      { id: "Arq", label: "ARQ", col: "ARQ" },
+      { id: "Htwt", label: "HEIGHT AND WEIGHT", col: "HEIGHT AND WEIGHT" },
+      { id: "Gas", label: "GAS CHAMBER", col: "GAS CHAMBER" },
+      { id: "Sapr", label: "SAPR", col: "SAPR" },
+      { id: "Cyber", label: "CYBER AWARENESS/PII", col: "CYBER AWARENESS/PII" },
+      { id: "Records", label: "RECORDS MANAGEMENT", col: "RECORDS MANAGEMENT" },
+      { id: "Pac", label: "PAC", col: "PAC" },
+      { id: "Umapit", label: "UMAPIT", col: "UMAPIT" },
+      { id: "Risk", label: "RISK MANAGEMENT", col: "RISK MANAGEMENT" },
+      { id: "Opsec", label: "OPSEC", col: "OPSEC" },
+      { id: "Lv1At", label: "LV 1 AT", col: "LV 1 AT" },
+      { id: "Ciar", label: "CIAR", col: "CIAR" },
+      { id: "Lles", label: "LLES", col: "LLES" }
+    ];
+
+    const el = {
+      fileName: document.getElementById("fileNameLabel"),
+      kpiTotal: document.getElementById("kpiTotal"),
+      kpiAvailable: document.getElementById("kpiAvailable"),
+      kpiAvailablePct: document.getElementById("kpiAvailablePct"),
+      kpiLeave: document.getElementById("kpiLeave"),
+      kpiTad: document.getElementById("kpiTad"),
+      kpiMed: document.getElementById("kpiMed"),
+      kpiOpsTotal: document.getElementById("kpiOpsTotal"),
+      kpiOpsCurrent: document.getElementById("kpiOpsCurrent"),
+      kpiOpsFuture: document.getElementById("kpiOpsFuture"),
+      kpiMissionReady: document.getElementById("kpiMissionReady"),
+      kpiMissionPct: document.getElementById("kpiMissionPct"),
+      kpiDrvPctValue: document.getElementById("kpiDrvPctValue"),
+      kpiDrvCount: document.getElementById("kpiDrvCount"),
+      kpiTcccPctValue: document.getElementById("kpiTcccPctValue"),
+      kpiTcccCount: document.getElementById("kpiTcccCount"),
+      kpiLdrPctValue: document.getElementById("kpiLdrPctValue"),
+      kpiLdrCount: document.getElementById("kpiLdrCount"),
+      mosTable: document.getElementById("mosTable"),
+      mosBody: document.querySelector("#mosTable tbody"),
+      mosEmpty: document.getElementById("mosEmpty"),
+      mosPieCanvas: document.getElementById("mosPieCanvas"),
+      mosPieInfo: document.getElementById("mosPieInfo"),
+      unitTable: document.getElementById("unitTable"),
+      unitBody: document.querySelector("#unitTable tbody"),
+      unitEmpty: document.getElementById("unitEmpty"),
+      unitDetailWrapper: document.getElementById("unitDetailWrapper"),
+      unitDetailBody: document.querySelector("#unitDetailTable tbody"),
+      unitBreakTitle: document.getElementById("unitBreakTitle"),
+      fullTable: document.getElementById("fullBoardTable"),
+      fullHeaderRow: document.getElementById("fullBoardHeaderRow"),
+      fullBody: document.querySelector("#fullBoardTable tbody"),
+      fullEmpty: document.getElementById("fullBoardEmpty"),
+      teamTable: document.getElementById("teamTable"),
+      teamBody: document.querySelector("#teamTable tbody"),
+      teamEmpty: document.getElementById("teamEmpty"),
+      teamDetailWrapper: document.getElementById("teamDetailWrapper"),
+      teamDetailBody: document.querySelector("#teamDetailTable tbody"),
+      teamBreakTitle: document.getElementById("teamBreakTitle"),
+      modalBackdrop: document.getElementById("detailModalBackdrop"),
+      detailTitle: document.getElementById("detailTitle"),
+      detailSubtitle: document.getElementById("detailSubtitle"),
+      detailBody: document.getElementById("detailBody"),
+      detailCount: document.getElementById("detailCountBadge"),
+      btnPrev: document.getElementById("btnPrevPage"),
+      btnNext: document.getElementById("btnNextPage"),
+      pageInfo: document.getElementById("pageInfo")
+    };
+
+    function parseCSV(text) {
+      const lines = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n")
+        .filter(line => line.trim().length > 0);
+      if (!lines.length) return [];
+      const headers = lines[0].split(",").map(h => h.trim());
+      const rows = [];
+
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i];
+        if (!line.trim()) continue;
+        const cols = line.split(",");
+        const obj = {};
+        headers.forEach((h, idx) => {
+          obj[h] = (cols[idx] ?? "").trim();
+        });
+        rows.push(obj);
+      }
+      return rows;
+    }
+
+    function normalizeRow(row) {
+      const rank = row["Rank"] || "";
+      const lastName = row["Last Name"] || "";
+      const firstName = row["First Name"] || "";
+      const unit = row["UNIT"] || "";
+      const mos = row["MOS"] || "";
+      const statusRaw = row["Status"] || "";
+      const statusStart = row["Status Start"] || "";
+      const statusEnd = row["Status End Date"] || "";
+      const edipi = row["EDIPI"] || "";
+      const email = row["Email"] || "";
+      const section = row["Section"] || "";
+      const squad = row["Squad"] || "";
+      const team = row["Team"] || "";
+
+      const currentOp =
+        row["Current Operation"] ||
+        row["Current Operation   "] ||
+        row["Current Operation  "] ||
+        "";
+
+      const currentOpStart =
+        row["Current Operation : Start Time"] ||
+        row["Current Operation: Start Time"] ||
+        row["Current Operation  : Start Time"] ||
+        "";
+
+      const currentOpEnd =
+        row["Current Operation : End Time"] ||
+        row["Current Operation: End Time"] ||
+        row["Current Operation  : End Time"] ||
+        "";
+
+      const futureOp = row["Future Operation"] || "";
+      const futureOpStart =
+        row["Future Operation: Start Time"] ||
+        row["Future Operation : Start Time"] ||
+        "";
+      const futureOpEnd =
+        row["Future Operation: End Time"] ||
+        row["Future Operation : End Time"] ||
+        "";
+
+      const statusLower = statusRaw.toLowerCase();
+      const isLeave = statusLower.includes("leave");
+      const isTad = statusLower.includes("tad");
+      const isMedical =
+        statusLower.includes("medical") ||
+        statusLower.includes("light") ||
+        statusLower.includes("limited");
+      const isCommittedCurrent = !!currentOp.trim();
+      const isCommittedFuture = !!futureOp.trim();
+      const isAvailable =
+        statusLower.includes("present") ||
+        statusLower.includes("on hand") ||
+        statusLower.includes("on-hand");
+
+      return {
+        rank, lastName, firstName, edipi, email,
+        unit, mos, statusRaw, statusStart, statusEnd,
+        section, squad, team,
+        currentOp, currentOpStart, currentOpEnd,
+        futureOp, futureOpStart, futureOpEnd,
+        full: { ...row },
+        flags: {
+          isLeave,
+          isTad,
+          isMedical,
+          isCommittedCurrent,
+          isCommittedFuture,
+          isAvailable
+        }
+      };
+    }
+
+    function groupBy(list, keyFn) {
+      const m = new Map();
+      for (const item of list) {
+        const k = keyFn(item);
+        if (!m.has(k)) m.set(k, []);
+        m.get(k).push(item);
+      }
+      return m;
+    }
+
+    function updateSummary() {
+      const total = personnel.length;
+      const leave = personnel.filter(p => p.flags.isLeave).length;
+      const tad = personnel.filter(p => p.flags.isTad).length;
+      const med = personnel.filter(p => p.flags.isMedical).length;
+      const currentOps = personnel.filter(p => p.flags.isCommittedCurrent).length;
+      const futureOps = personnel.filter(p => p.flags.isCommittedFuture).length;
+      const committedOps = currentOps + futureOps;
+      const available = personnel.filter(p => p.flags.isAvailable).length;
+
+      const missionReady = personnel.filter(p =>
+        p.flags.isAvailable &&
+        !p.flags.isMedical &&
+        !p.flags.isCommittedCurrent &&
+        !p.flags.isCommittedFuture
+      ).length;
+
+      el.kpiTotal.textContent = total;
+      el.kpiLeave.textContent = leave;
+      el.kpiTad.textContent = tad;
+      el.kpiMed.textContent = med;
+      el.kpiOpsCurrent.textContent = currentOps;
+      el.kpiOpsFuture.textContent = futureOps;
+      el.kpiOpsTotal.textContent = committedOps;
+      el.kpiAvailable.textContent = available;
+      el.kpiMissionReady.textContent = missionReady;
+
+      const pctAvail = total ? Math.round((available / total) * 100) : 0;
+      const pctMission = total ? Math.round((missionReady / total) * 100) : 0;
+      el.kpiAvailablePct.textContent = pctAvail + "%";
+      el.kpiMissionPct.textContent = pctMission + "%";
+
+      updateTrainingKPIs();
+    }
+
+    function updateTrainingKPIs() {
+      const total = personnel.length || 1;
+
+      const drvList = personnel.filter(p =>
+        (p.full["HUMVEE LICENSE"] || "").trim() ||
+        (p.full["JLTV LICENSE"] || "").trim()
+      );
+      const tcccList = personnel.filter(p =>
+        (p.full["TCCC TIER 1"] || "").trim() ||
+        (p.full["TCCC TIER 2"] || "").trim() ||
+        (p.full["TCCC TIER 3"] || "").trim() ||
+        (p.full["TCCC TIER 4"] || "").trim()
+      );
+      const ldrList = personnel.filter(p =>
+        (p.full["CORPORALS COURSE"] || "").trim() ||
+        (p.full["SERGEANT SCHOOL"] || "").trim()
+      );
+
+      const drvPct = personnel.length ? Math.round(drvList.length / total * 100) : 0;
+      const tcccPct = personnel.length ? Math.round(tcccList.length / total * 100) : 0;
+      const ldrPct = personnel.length ? Math.round(ldrList.length / total * 100) : 0;
+
+      el.kpiDrvPctValue.textContent = drvPct + "%";
+      el.kpiDrvCount.textContent = `${drvList.length} Marines`;
+
+      el.kpiTcccPctValue.textContent = tcccPct + "%";
+      el.kpiTcccCount.textContent = `${tcccList.length} Marines`;
+
+      el.kpiLdrPctValue.textContent = ldrPct + "%";
+      el.kpiLdrCount.textContent = `${ldrList.length} Marines`;
+
+      trainingFields.forEach(tf => {
+        const list = personnel.filter(p => (p.full[tf.col] || "").trim());
+        const pct = personnel.length ? Math.round(list.length / total * 100) : 0;
+        const pctEl = document.getElementById(`kpi${tf.id}PctValue`);
+        const countEl = document.getElementById(`kpi${tf.id}Count`);
+        if (pctEl) pctEl.textContent = pct + "%";
+        if (countEl) countEl.textContent = `${list.length} Marines`;
+      });
+    }
+
+    function createNumberCell(value, clickable, payload) {
+      const td = document.createElement("td");
+      td.classList.add("numeric");
+      if (!clickable) {
+        td.textContent = value;
+        return td;
+      }
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "clickable-number";
+      btn.textContent = value;
+      Object.entries(payload).forEach(([k, v]) => btn.dataset[k] = String(v));
+      btn.addEventListener("click", () => handleNumberClick(btn));
+      td.appendChild(btn);
+      return td;
+    }
+
+    function renderMos() {
+      el.mosBody.innerHTML = "";
+      mosStats = [];
+
+      if (!personnel.length) {
+        el.mosTable.classList.add("hidden");
+        el.mosEmpty.classList.remove("hidden");
+        renderMosPie();
+        return;
+      }
+      const groups = groupBy(personnel, p => p.mos || "UNK");
+      const keys = Array.from(groups.keys()).sort((a, b) => {
+        const na = parseInt(a, 10), nb = parseInt(b, 10);
+        if (!isNaN(na) && !isNaN(nb)) return na - nb;
+        return String(a).localeCompare(String(b));
+      });
+
+      for (const mos of keys) {
+        const list = groups.get(mos);
+        const total = list.length;
+        const available = list.filter(p => p.flags.isAvailable).length;
+        const leave = list.filter(p => p.flags.isLeave).length;
+        const tad = list.filter(p => p.flags.isTad).length;
+        const med = list.filter(p => p.flags.isMedical).length;
+        const currentOps = list.filter(p => p.flags.isCommittedCurrent).length;
+        const futureOps = list.filter(p => p.flags.isCommittedFuture).length;
+
+        mosStats.push({ mos, total });
+
+        const tr = document.createElement("tr");
+        const tdMos = document.createElement("td");
+        tdMos.textContent = mos;
+        tr.appendChild(tdMos);
+
+        tr.appendChild(createNumberCell(total, total > 0, { type: "mos", mos, key: "total" }));
+        tr.appendChild(createNumberCell(available, available > 0, { type: "mos", mos, key: "available" }));
+        tr.appendChild(createNumberCell(leave, leave > 0, { type: "mos", mos, key: "leave" }));
+        tr.appendChild(createNumberCell(tad, tad > 0, { type: "mos", mos, key: "tad" }));
+        tr.appendChild(createNumberCell(med, med > 0, { type: "mos", mos, key: "med" }));
+        tr.appendChild(createNumberCell(currentOps, currentOps > 0, { type: "mos", mos, key: "currentOps" }));
+        tr.appendChild(createNumberCell(futureOps, futureOps > 0, { type: "mos", mos, key: "futureOps" }));
+
+        el.mosBody.appendChild(tr);
+      }
+
+      el.mosTable.classList.remove("hidden");
+      el.mosEmpty.classList.add("hidden");
+
+      renderMosPie();
+    }
+
+    function normalizeAngle(a) {
+      while (a < 0) a += 2 * Math.PI;
+      while (a >= 2 * Math.PI) a -= 2 * Math.PI;
+      return a;
+    }
+
+    function renderMosPie() {
+      const canvas = el.mosPieCanvas;
+      const infoBox = el.mosPieInfo;
+      if (!canvas || !canvas.getContext) return;
+      const ctx = canvas.getContext("2d");
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+
+      mosPieSlices = [];
+
+      const total = mosStats.reduce((sum, m) => sum + m.total, 0);
+      if (!total) {
+        ctx.fillStyle = "#666";
+        ctx.font = "12px Roboto, sans-serif";
+        ctx.fillText("No MOS data", 10, 20);
+        if (infoBox) {
+          infoBox.textContent = "No MOS data.";
+        }
+        return;
+      }
+
+      const cx = 110;
+      const cy = h / 2;
+      const r = MOS_DONUT_OUTER;
+      const innerR = MOS_DONUT_INNER;
+      const selectedR = r + 6;
+
+      const palette = [
+        "#ff8a3c","#ffc95e","#1fd18a","#ff4b5c",
+        "#8e8cff","#4fd5ff","#ff7c7c","#9be15d","#f6d365"
+      ];
+
+      let start = -Math.PI / 2;
+
+      mosStats.forEach((item, idx) => {
+        const slice = (item.total / total) * Math.PI * 2;
+        const end = start + slice;
+
+        mosPieSlices.push({
+          mos: item.mos,
+          total: item.total,
+          startAngle: start,
+          endAngle: end,
+          color: palette[idx % palette.length]
+        });
+
+        const isSelected = (idx === mosPieSelectedIndex);
+        const radius = isSelected ? selectedR : r;
+
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, radius, start, end);
+        ctx.closePath();
+        ctx.fillStyle = palette[idx % palette.length];
+        ctx.fill();
+
+        start = end;
+      });
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, innerR, 0, Math.PI * 2);
+      ctx.fillStyle = "#101318";
+      ctx.fill();
+
+      ctx.fillStyle = "#ccc";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      if (mosPieSelectedIndex >= 0 && mosPieSelectedIndex < mosStats.length) {
+        const sel = mosStats[mosPieSelectedIndex];
+        const pct = Math.round((sel.total / total) * 100);
+        ctx.font = "10px Rajdhani, sans-serif";
+        ctx.fillText(`MOS ${sel.mos}`, cx, cy - 7);
+        ctx.font = "11px Rajdhani, sans-serif";
+        ctx.fillText(`${pct}%`, cx, cy + 8);
+
+        if (infoBox) {
+          infoBox.textContent = `MOS ${sel.mos}: ${sel.total} Marines (${pct}%)`;
+        }
+      } else {
+        ctx.font = "10px Rajdhani, sans-serif";
+        ctx.fillText("MOS", cx, cy - 7);
+        ctx.font = "11px Rajdhani, sans-serif";
+        ctx.fillText("Donut View", cx, cy + 8);
+        if (infoBox) {
+          infoBox.textContent = "No MOS selected. Click on the donut to inspect.";
+        }
+      }
+    }
+
+    function getMosSliceIndexAtEvent(event) {
+      if (!mosStats.length || !el.mosPieCanvas) return -1;
+      const canvas = el.mosPieCanvas;
+      const rect = canvas.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+
+      const h = canvas.height;
+      const cx = 110;
+      const cy = h / 2;
+
+      const dx = x - cx;
+      const dy = y - cy;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist < MOS_DONUT_INNER || dist > MOS_DONUT_OUTER + 10) {
+        return -1;
+      }
+
+      let angle = Math.atan2(dy, dx);
+      angle = normalizeAngle(angle);
+
+      let foundIndex = -1;
+      mosPieSlices.forEach((slice, idx) => {
+        let s = normalizeAngle(slice.startAngle);
+        let e = normalizeAngle(slice.endAngle);
+
+        let inSlice = false;
+        if (e < s) {
+          inSlice = (angle >= s && angle < 2 * Math.PI) || (angle >= 0 && angle < e);
+        } else {
+          inSlice = angle >= s && angle < e;
+        }
+
+        if (inSlice && foundIndex === -1) {
+          foundIndex = idx;
+        }
+      });
+
+      return foundIndex;
+    }
+
+    function handleMosPieClick(event) {
+      const idx = getMosSliceIndexAtEvent(event);
+      mosPieSelectedIndex = idx;
+      renderMosPie();
+    }
+
+    function handleMosPieDetail(event) {
+      const idx = getMosSliceIndexAtEvent(event);
+      if (idx < 0 || idx >= mosStats.length) return;
+      const slice = mosStats[idx];
+      mosPieSelectedIndex = idx;
+      renderMosPie();
+
+      const list = personnel.filter(p => (p.mos || "UNK") === slice.mos);
+      openDetailModal(
+        `MOS ${slice.mos}`,
+        `All Marines with MOS ${slice.mos}.`,
+        list
+      );
+    }
+
+    function renderUnitTable() {
+      el.unitBody.innerHTML = "";
+      el.unitDetailBody.innerHTML = "";
+      el.unitDetailWrapper.classList.add("hidden");
+
+      if (!personnel.length) {
+        el.unitTable.classList.add("hidden");
+        el.unitEmpty.classList.remove("hidden");
+        return;
+      }
+
+      const groups = groupBy(personnel, p => p.unit || "UNK");
+      const units = Array.from(groups.keys()).sort((a, b) => a.localeCompare(b));
+
+      for (const unit of units) {
+        const list = groups.get(unit);
+        const total = list.length;
+        const available = list.filter(p => p.flags.isAvailable).length;
+        const notAvail = total - available;
+        const ops = list.filter(p => p.flags.isCommittedCurrent || p.flags.isCommittedFuture).length;
+
+        const tr = document.createElement("tr");
+
+        const tdUnit = document.createElement("td");
+        tdUnit.classList.add("unit-cell");
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "unit-btn";
+        btn.textContent = unit;
+        btn.addEventListener("click", () => showUnitBreakdown(unit));
+        tdUnit.appendChild(btn);
+        tr.appendChild(tdUnit);
+
+        tr.appendChild(createNumberCell(total, total > 0, { type: "unitAgg", unit, key: "total" }));
+        tr.appendChild(createNumberCell(available, available > 0, { type: "unitAgg", unit, key: "available" }));
+        tr.appendChild(createNumberCell(notAvail, notAvail > 0, { type: "unitAgg", unit, key: "notAvailable" }));
+        tr.appendChild(createNumberCell(ops, ops > 0, { type: "unitAgg", unit, key: "ops" }));
+
+        el.unitBody.appendChild(tr);
+      }
+
+      el.unitTable.classList.remove("hidden");
+      el.unitEmpty.classList.add("hidden");
+    }
+
+    function showUnitBreakdown(unit) {
+      const list = personnel.filter(p => (p.unit || "UNK") === unit);
+      el.unitDetailBody.innerHTML = "";
+      if (!list.length) {
+        el.unitDetailWrapper.classList.add("hidden");
+        return;
+      }
+      el.unitBreakTitle.textContent = `Unit: ${unit}`;
+      el.unitDetailWrapper.classList.remove("hidden");
+
+      const groups = groupBy(list, p =>
+        [p.section || "UNK", p.squad || "UNK", p.team || "UNK"].join("||")
+      );
+      const keys = Array.from(groups.keys()).sort((a, b) => a.localeCompare(b));
+
+      for (const key of keys) {
+        const [section, squad, team] = key.split("||");
+        const seg = groups.get(key);
+        const total = seg.length;
+        const available = seg.filter(p => p.flags.isAvailable).length;
+        const notAvail = total - available;
+        const ops = seg.filter(p => p.flags.isCommittedCurrent || p.flags.isCommittedFuture).length;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${section}</td><td>${squad}</td><td>${team}</td>`;
+        const basePayload = { type: "unitElem", unit, section, squad, team };
+        tr.appendChild(createNumberCell(total, total > 0, { ...basePayload, key: "total" }));
+        tr.appendChild(createNumberCell(available, available > 0, { ...basePayload, key: "available" }));
+        tr.appendChild(createNumberCell(notAvail, notAvail > 0, { ...basePayload, key: "notAvailable" }));
+        tr.appendChild(createNumberCell(ops, ops > 0, { ...basePayload, key: "ops" }));
+        el.unitDetailBody.appendChild(tr);
+      }
+    }
+
+    function renderFullMatrix() {
+      el.fullBody.innerHTML = "";
+      el.fullHeaderRow.innerHTML = "";
+      if (!personnel.length) {
+        el.fullTable.classList.add("hidden");
+        el.fullEmpty.classList.remove("hidden");
+        return;
+      }
+
+      fullColumns.forEach(col => {
+        const th = document.createElement("th");
+        th.textContent = col;
+        el.fullHeaderRow.appendChild(th);
+      });
+
+      const groups = groupBy(personnel, p => p.unit || "UNK");
+      const units = Array.from(groups.keys()).sort((a, b) => a.localeCompare(b));
+
+      for (const unit of units) {
+        const unitList = groups.get(unit).slice().sort((a, b) => {
+          const ln = a.lastName.localeCompare(b.lastName);
+          if (ln !== 0) return ln;
+          return a.firstName.localeCompare(b.firstName);
+        });
+
+        const unitRow = document.createElement("tr");
+        unitRow.className = "matrix-unit-row";
+        unitRow.dataset.unit = unit;
+
+        const tdUnit = document.createElement("td");
+        tdUnit.colSpan = fullColumns.length;
+        const arrowSpan = document.createElement("span");
+        arrowSpan.className = "matrix-unit-toggle";
+        arrowSpan.textContent = "▶";
+        arrowSpan.dataset.arrowFor = unit;
+        tdUnit.appendChild(arrowSpan);
+        const labelSpan = document.createElement("span");
+        labelSpan.textContent = ` ${unit}  (${unitList.length} Marines)`;
+        tdUnit.appendChild(labelSpan);
+        unitRow.appendChild(tdUnit);
+
+        unitRow.addEventListener("click", () => toggleUnitGroup(unit));
+
+        el.fullBody.appendChild(unitRow);
+
+        for (const p of unitList) {
+          const tr = document.createElement("tr");
+          tr.className = "unit-member-row hidden";
+          tr.dataset.unit = unit;
+
+          for (const col of fullColumns) {
+            const td = document.createElement("td");
+            let val = "";
+
+            if (p.full && Object.prototype.hasOwnProperty.call(p.full, col)) {
+              val = p.full[col] || "";
+            }
+
+            if (!val) {
+              switch (col) {
+                case "UNIT": val = p.unit; break;
+                case "Rank": val = p.rank; break;
+                case "Last Name": val = p.lastName; break;
+                case "First Name": val = p.firstName; break;
+                case "EDIPI": val = p.edipi; break;
+                case "Email": val = p.email; break;
+                case "MOS": val = p.mos; break;
+                case "Status": val = p.statusRaw; break;
+                case "Status Start": val = p.statusStart; break;
+                case "Status End Date": val = p.statusEnd; break;
+                case "Section": val = p.section; break;
+                case "Squad": val = p.squad; break;
+                case "Team": val = p.team; break;
+                case "Current Operation": val = p.currentOp; break;
+                case "Current Operation : Start Time": val = p.currentOpStart; break;
+                case "Current Operation : End Time": val = p.currentOpEnd; break;
+                case "Future Operation": val = p.futureOp; break;
+                case "Future Operation: Start Time": val = p.futureOpStart; break;
+                case "Future Operation: End Time": val = p.futureOpEnd; break;
+              }
+            }
+
+            td.textContent = val;
+            tr.appendChild(td);
+          }
+          el.fullBody.appendChild(tr);
+        }
+      }
+
+      el.fullTable.classList.remove("hidden");
+      el.fullEmpty.classList.add("hidden");
+    }
+
+    function toggleUnitGroup(unit) {
+      const rows = el.fullBody.querySelectorAll(`tr.unit-member-row[data-unit="${unit}"]`);
+      const arrow = el.fullBody.querySelector(`span.matrix-unit-toggle[data-arrow-for="${unit}"]`);
+      let anyVisible = false;
+      rows.forEach(r => {
+        if (!r.classList.contains("hidden")) anyVisible = true;
+      });
+      const shouldHide = anyVisible;
+      rows.forEach(r => {
+        if (shouldHide) {
+          r.classList.add("hidden");
+        } else {
+          r.classList.remove("hidden");
+        }
+      });
+      if (arrow) arrow.textContent = shouldHide ? "▶" : "▼";
+    }
+
+    function renderTeamBoard() {
+      el.teamBody.innerHTML = "";
+      el.teamDetailBody.innerHTML = "";
+      el.teamDetailWrapper.classList.add("hidden");
+
+      if (!personnel.length) {
+        el.teamTable.classList.add("hidden");
+        el.teamEmpty.classList.remove("hidden");
+        return;
+      }
+
+      const squadGroups = groupBy(
+        personnel,
+        p => [p.unit || "UNK", p.section || "UNK", p.squad || "UNK"].join("||")
+      );
+      const squadKeys = Array.from(squadGroups.keys()).sort((a, b) => a.localeCompare(b));
+
+      for (const key of squadKeys) {
+        const [unit, section, squad] = key.split("||");
+        const list = squadGroups.get(key);
+        const total = list.length;
+        const available = list.filter(p => p.flags.isAvailable).length;
+        const notAvail = total - available;
+        const ops = list.filter(p => p.flags.isCommittedCurrent || p.flags.isCommittedFuture).length;
+
+        const hasDriver = list.some(p =>
+          (p.full["HUMVEE LICENSE"] || "").trim() ||
+          (p.full["JLTV LICENSE"] || "").trim()
+        );
+        const hasTccc = list.some(p =>
+          (p.full["TCCC TIER 1"] || "").trim() ||
+          (p.full["TCCC TIER 2"] || "").trim() ||
+          (p.full["TCCC TIER 3"] || "").trim() ||
+          (p.full["TCCC TIER 4"] || "").trim()
+        );
+        const hasLeader = list.some(p =>
+          (p.full["CORPORALS COURSE"] || "").trim() ||
+          (p.full["SERGEANT SCHOOL"] || "").trim()
+        );
+
+        const hasMcenSUser = list.some(p => (p.full["MCEN-S USER"] || "").trim());
+        const hasMcenNUser = list.some(p => (p.full["MCEN-N USER"] || "").trim());
+        const hasMcenNAdmin = list.some(p => (p.full["MCEN-N ADMIN"] || "").trim());
+        const hasMcenSAdmin = list.some(p => (p.full["MCEN-S ADMIN"] || "").trim());
+
+        const hasTieNUser = list.some(p => (p.full["TIE-N USER"] || "").trim());
+        const hasTieNUa = list.some(p => (p.full["TIE-N UA"] || "").trim());
+        const hasTieNSa = list.some(p => (p.full["TIE-N SA"] || "").trim());
+        const hasTieSUser = list.some(p => (p.full["TIE-S USER"] || "").trim());
+        const hasTieSUa = list.some(p => (p.full["TIE-S UA"] || "").trim());
+        const hasTieSSa = list.some(p => (p.full["TIE-S SA"] || "").trim());
+        const hasTieNsUser = list.some(p => (p.full["TIE-NS USER"] || "").trim());
+        const hasTieNsUa = list.some(p => (p.full["TIE-NS UA"] || "").trim());
+        const hasTieNsSa = list.some(p => (p.full["TIE-NS SA"] || "").trim());
+        const hasTieNNa = list.some(p => (p.full["TIE-N NA"] || "").trim());
+        const hasTieSNa = list.some(p => (p.full["TIE-S NA"] || "").trim());
+        const hasTieNaNa = list.some(p => (p.full["TIE-NA NA"] || "").trim());
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${unit}</td>
+          <td>${section}</td>
+          <td></td>
+        `;
+        const squadTd = tr.children[2];
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "squad-btn";
+        btn.textContent = squad;
+        btn.addEventListener("click", () => showSquadTeams(unit, section, squad));
+        squadTd.appendChild(btn);
+
+        const payloadBase = { type: "squadAgg", unit, section, squad };
+        tr.appendChild(createNumberCell(total, total > 0, { ...payloadBase, key: "total" }));
+        tr.appendChild(createNumberCell(available, available > 0, { ...payloadBase, key: "available" }));
+        tr.appendChild(createNumberCell(notAvail, notAvail > 0, { ...payloadBase, key: "notAvailable" }));
+        tr.appendChild(createNumberCell(ops, ops > 0, { ...payloadBase, key: "ops" }));
+
+        const drvTd = document.createElement("td");
+        drvTd.innerHTML = `<span class="cap-chip ${hasDriver ? "on" : "off"}">DRV</span>`;
+        const tcccTd = document.createElement("td");
+        tcccTd.innerHTML = `<span class="cap-chip ${hasTccc ? "on" : "off"}">TCCC</span>`;
+        const ldrTd = document.createElement("td");
+        ldrTd.innerHTML = `<span class="cap-chip ${hasLeader ? "on" : "off"}">LDR</span>`;
+
+        const msuTd = document.createElement("td");
+        msuTd.innerHTML = `<span class="cap-chip ${hasMcenSUser ? "on" : "off"}">MS-U</span>`;
+        const mnuTd = document.createElement("td");
+        mnuTd.innerHTML = `<span class="cap-chip ${hasMcenNUser ? "on" : "off"}">MN-U</span>`;
+        const mnaTd = document.createElement("td");
+        mnaTd.innerHTML = `<span class="cap-chip ${hasMcenNAdmin ? "on" : "off"}">MN-A</span>`;
+        const msaTd = document.createElement("td");
+        msaTd.innerHTML = `<span class="cap-chip ${hasMcenSAdmin ? "on" : "off"}">MS-A</span>`;
+
+        const tnuTd = document.createElement("td");
+        tnuTd.innerHTML = `<span class="cap-chip ${hasTieNUser ? "on" : "off"}">TN-U</span>`;
+        const tnuUaTd = document.createElement("td");
+        tnuUaTd.innerHTML = `<span class="cap-chip ${hasTieNUa ? "on" : "off"}">TN-UA</span>`;
+        const tnuSaTd = document.createElement("td");
+        tnuSaTd.innerHTML = `<span class="cap-chip ${hasTieNSa ? "on" : "off"}">TN-SA</span>`;
+        const tsuTd = document.createElement("td");
+        tsuTd.innerHTML = `<span class="cap-chip ${hasTieSUser ? "on" : "off"}">TS-U</span>`;
+        const tsuUaTd = document.createElement("td");
+        tsuUaTd.innerHTML = `<span class="cap-chip ${hasTieSUa ? "on" : "off"}">TS-UA</span>`;
+        const tsuSaTd = document.createElement("td");
+        tsuSaTd.innerHTML = `<span class="cap-chip ${hasTieSSa ? "on" : "off"}">TS-SA</span>`;
+
+        const tnsuTd = document.createElement("td");
+        tnsuTd.innerHTML = `<span class="cap-chip ${hasTieNsUser ? "on" : "off"}">TNS-U</span>`;
+        const tnsUaTd = document.createElement("td");
+        tnsUaTd.innerHTML = `<span class="cap-chip ${hasTieNsUa ? "on" : "off"}">TNS-UA</span>`;
+        const tnsSaTd = document.createElement("td");
+        tnsSaTd.innerHTML = `<span class="cap-chip ${hasTieNsSa ? "on" : "off"}">TNS-SA</span>`;
+        const tnNaTd = document.createElement("td");
+        tnNaTd.innerHTML = `<span class="cap-chip ${hasTieNNa ? "on" : "off"}">TN-NA</span>`;
+        const tsNaTd = document.createElement("td");
+        tsNaTd.innerHTML = `<span class="cap-chip ${hasTieSNa ? "on" : "off"}">TS-NA</span>`;
+        const tnaNaTd = document.createElement("td");
+        tnaNaTd.innerHTML = `<span class="cap-chip ${hasTieNaNa ? "on" : "off"}">TNA-NA</span>`;
+
+        tr.appendChild(drvTd);
+        tr.appendChild(tcccTd);
+        tr.appendChild(ldrTd);
+        tr.appendChild(msuTd);
+        tr.appendChild(mnuTd);
+        tr.appendChild(mnaTd);
+        tr.appendChild(msaTd);
+        tr.appendChild(tnuTd);
+        tr.appendChild(tnuUaTd);
+        tr.appendChild(tnuSaTd);
+        tr.appendChild(tsuTd);
+        tr.appendChild(tsuUaTd);
+        tr.appendChild(tsuSaTd);
+        tr.appendChild(tnsuTd);
+        tr.appendChild(tnsUaTd);
+        tr.appendChild(tnsSaTd);
+        tr.appendChild(tnNaTd);
+        tr.appendChild(tsNaTd);
+        tr.appendChild(tnaNaTd);
+
+        el.teamBody.appendChild(tr);
+      }
+
+      el.teamTable.classList.remove("hidden");
+      el.teamEmpty.classList.add("hidden");
+    }
+
+    function showSquadTeams(unit, section, squad) {
+      const list = personnel.filter(p =>
+        (p.unit || "UNK") === unit &&
+        (p.section || "UNK") === section &&
+        (p.squad || "UNK") === squad
+      );
+      el.teamDetailBody.innerHTML = "";
+      if (!list.length) {
+        el.teamDetailWrapper.classList.add("hidden");
+        return;
+      }
+      el.teamBreakTitle.textContent = `Squad: ${unit} / ${section} / ${squad}`;
+      el.teamDetailWrapper.classList.remove("hidden");
+
+      const groups = groupBy(
+        list,
+        p => p.team || "UNK"
+      );
+      const keys = Array.from(groups.keys()).sort((a, b) => a.localeCompare(b));
+
+      for (const team of keys) {
+        const seg = groups.get(team);
+        const total = seg.length;
+        const available = seg.filter(p => p.flags.isAvailable).length;
+        const notAvail = total - available;
+        const ops = seg.filter(p => p.flags.isCommittedCurrent || p.flags.isCommittedFuture).length;
+
+        const hasDriver = seg.some(p =>
+          (p.full["HUMVEE LICENSE"] || "").trim() ||
+          (p.full["JLTV LICENSE"] || "").trim()
+        );
+        const hasTccc = seg.some(p =>
+          (p.full["TCCC TIER 1"] || "").trim() ||
+          (p.full["TCCC TIER 2"] || "").trim() ||
+          (p.full["TCCC TIER 3"] || "").trim() ||
+          (p.full["TCCC TIER 4"] || "").trim()
+        );
+        const hasLeader = seg.some(p =>
+          (p.full["CORPORALS COURSE"] || "").trim() ||
+          (p.full["SERGEANT SCHOOL"] || "").trim()
+        );
+
+        const hasMcenSUser = seg.some(p => (p.full["MCEN-S USER"] || "").trim());
+        const hasMcenNUser = seg.some(p => (p.full["MCEN-N USER"] || "").trim());
+        const hasMcenNAdmin = seg.some(p => (p.full["MCEN-N ADMIN"] || "").trim());
+        const hasMcenSAdmin = seg.some(p => (p.full["MCEN-S ADMIN"] || "").trim());
+
+        const hasTieNUser = seg.some(p => (p.full["TIE-N USER"] || "").trim());
+        const hasTieNUa = seg.some(p => (p.full["TIE-N UA"] || "").trim());
+        const hasTieNSa = seg.some(p => (p.full["TIE-N SA"] || "").trim());
+        const hasTieSUser = seg.some(p => (p.full["TIE-S USER"] || "").trim());
+        const hasTieSUa = seg.some(p => (p.full["TIE-S UA"] || "").trim());
+        const hasTieSSa = seg.some(p => (p.full["TIE-S SA"] || "").trim());
+        const hasTieNsUser = seg.some(p => (p.full["TIE-NS USER"] || "").trim());
+        const hasTieNsUa = seg.some(p => (p.full["TIE-NS UA"] || "").trim());
+        const hasTieNsSa = seg.some(p => (p.full["TIE-NS SA"] || "").trim());
+        const hasTieNNa = seg.some(p => (p.full["TIE-N NA"] || "").trim());
+        const hasTieSNa = seg.some(p => (p.full["TIE-S NA"] || "").trim());
+        const hasTieNaNa = seg.some(p => (p.full["TIE-NA NA"] || "").trim());
+
+        const tr = document.createElement("tr");
+        const payloadBase = { type: "unitElem", unit, section, squad, team };
+
+        tr.innerHTML = `<td>${team}</td>`;
+        tr.appendChild(createNumberCell(total, total > 0, { ...payloadBase, key: "total" }));
+        tr.appendChild(createNumberCell(available, available > 0, { ...payloadBase, key: "available" }));
+        tr.appendChild(createNumberCell(notAvail, notAvail > 0, { ...payloadBase, key: "notAvailable" }));
+        tr.appendChild(createNumberCell(ops, ops > 0, { ...payloadBase, key: "ops" }));
+
+        const drvTd = document.createElement("td");
+        drvTd.innerHTML = `<span class="cap-chip ${hasDriver ? "on" : "off"}">DRV</span>`;
+        const tcccTd = document.createElement("td");
+        tcccTd.innerHTML = `<span class="cap-chip ${hasTccc ? "on" : "off"}">TCCC</span>`;
+        const ldrTd = document.createElement("td");
+        ldrTd.innerHTML = `<span class="cap-chip ${hasLeader ? "on" : "off"}">LDR</span>`;
+
+        const msuTd = document.createElement("td");
+        msuTd.innerHTML = `<span class="cap-chip ${hasMcenSUser ? "on" : "off"}">MS-U</span>`;
+        const mnuTd = document.createElement("td");
+        mnuTd.innerHTML = `<span class="cap-chip ${hasMcenNUser ? "on" : "off"}">MN-U</span>`;
+        const mnaTd = document.createElement("td");
+        mnaTd.innerHTML = `<span class="cap-chip ${hasMcenNAdmin ? "on" : "off"}">MN-A</span>`;
+        const msaTd = document.createElement("td");
+        msaTd.innerHTML = `<span class="cap-chip ${hasMcenSAdmin ? "on" : "off"}">MS-A</span>`;
+
+        const tnuTd = document.createElement("td");
+        tnuTd.innerHTML = `<span class="cap-chip ${hasTieNUser ? "on" : "off"}">TN-U</span>`;
+        const tnuUaTd = document.createElement("td");
+        tnuUaTd.innerHTML = `<span class="cap-chip ${hasTieNUa ? "on" : "off"}">TN-UA</span>`;
+        const tnuSaTd = document.createElement("td");
+        tnuSaTd.innerHTML = `<span class="cap-chip ${hasTieNSa ? "on" : "off"}">TN-SA</span>`;
+        const tsuTd = document.createElement("td");
+        tsuTd.innerHTML = `<span class="cap-chip ${hasTieSUser ? "on" : "off"}">TS-U</span>`;
+        const tsuUaTd = document.createElement("td");
+        tsuUaTd.innerHTML = `<span class="cap-chip ${hasTieSUa ? "on" : "off"}">TS-UA</span>`;
+        const tsuSaTd = document.createElement("td");
+        tsuSaTd.innerHTML = `<span class="cap-chip ${hasTieSSa ? "on" : "off"}">TS-SA</span>`;
+
+        const tnsuTd = document.createElement("td");
+        tnsuTd.innerHTML = `<span class="cap-chip ${hasTieNsUser ? "on" : "off"}">TNS-U</span>`;
+        const tnsUaTd = document.createElement("td");
+        tnsUaTd.innerHTML = `<span class="cap-chip ${hasTieNsUa ? "on" : "off"}">TNS-UA</span>`;
+        const tnsSaTd = document.createElement("td");
+        tnsSaTd.innerHTML = `<span class="cap-chip ${hasTieNsSa ? "on" : "off"}">TNS-SA</span>`;
+        const tnNaTd = document.createElement("td");
+        tnNaTd.innerHTML = `<span class="cap-chip ${hasTieNNa ? "on" : "off"}">TN-NA</span>`;
+        const tsNaTd = document.createElement("td");
+        tsNaTd.innerHTML = `<span class="cap-chip ${hasTieSNa ? "on" : "off"}">TS-NA</span>`;
+        const tnaNaTd = document.createElement("td");
+        tnaNaTd.innerHTML = `<span class="cap-chip ${hasTieNaNa ? "on" : "off"}">TNA-NA</span>`;
+
+        tr.appendChild(drvTd);
+        tr.appendChild(tcccTd);
+        tr.appendChild(ldrTd);
+        tr.appendChild(msuTd);
+        tr.appendChild(mnuTd);
+        tr.appendChild(mnaTd);
+        tr.appendChild(msaTd);
+        tr.appendChild(tnuTd);
+        tr.appendChild(tnuUaTd);
+        tr.appendChild(tnuSaTd);
+        tr.appendChild(tsuTd);
+        tr.appendChild(tsuUaTd);
+        tr.appendChild(tsuSaTd);
+        tr.appendChild(tnsuTd);
+        tr.appendChild(tnsUaTd);
+        tr.appendChild(tnsSaTd);
+        tr.appendChild(tnNaTd);
+        tr.appendChild(tsNaTd);
+        tr.appendChild(tnaNaTd);
+
+        el.teamDetailBody.appendChild(tr);
+      }
+    }
+
+    function handleNumberClick(btn) {
+      const ds = btn.dataset;
+      const type = ds.type;
+      let list = [];
+      let title = "";
+      let subtitle = "";
+
+      if (type === "mos") {
+        const mos = ds.mos;
+        list = personnel.filter(p => (p.mos || "UNK") === mos);
+        title = `MOS ${mos}`;
+        switch (ds.key) {
+          case "available":
+            list = list.filter(p => p.flags.isAvailable);
+            subtitle = "Available (Present for Duty / On Hand).";
+            break;
+          case "leave":
+            list = list.filter(p => p.flags.isLeave);
+            subtitle = "Status: Leave.";
+            break;
+          case "tad":
+            list = list.filter(p => p.flags.isTad);
+            subtitle = "Status: TAD.";
+            break;
+          case "med":
+            list = list.filter(p => p.flags.isMedical);
+            subtitle = "Medical / Light / Limited duty.";
+            break;
+          case "currentOps":
+            list = list.filter(p => p.flags.isCommittedCurrent);
+            subtitle = "Committed to current operations.";
+            break;
+          case "futureOps":
+            list = list.filter(p => p.flags.isCommittedFuture);
+            subtitle = "Committed to future operations.";
+            break;
+          default:
+            subtitle = "All Marines within MOS.";
+        }
+      } else if (type === "unitAgg") {
+        const unit = ds.unit;
+        list = personnel.filter(p => (p.unit || "UNK") === unit);
+        title = `Unit: ${unit}`;
+        switch (ds.key) {
+          case "available":
+            list = list.filter(p => p.flags.isAvailable);
+            subtitle = "Available Marines in this unit.";
+            break;
+          case "notAvailable":
+            list = list.filter(p => !p.flags.isAvailable);
+            subtitle = "Not available in this unit.";
+            break;
+          case "ops":
+            list = list.filter(p => p.flags.isCommittedCurrent || p.flags.isCommittedFuture);
+            subtitle = "Committed to operations in this unit.";
+            break;
+          default:
+            subtitle = "All Marines in this unit.";
+        }
+      } else if (type === "unitElem" || type === "squadAgg") {
+        const { unit, section, squad, team, key } = ds;
+        list = personnel.filter(p =>
+          (p.unit || "UNK") === unit &&
+          (section ? (p.section || "UNK") === section : true) &&
+          (squad ? (p.squad || "UNK") === squad : true) &&
+          (team ? (p.team || "UNK") === team : true)
+        );
+        title = `Element: ${unit}${section ? " / " + section : ""}${squad ? " / " + squad : ""}${team ? " / " + team : ""}`;
+        switch (key) {
+          case "available":
+            list = list.filter(p => p.flags.isAvailable);
+            subtitle = "Available in this element.";
+            break;
+          case "notAvailable":
+            list = list.filter(p => !p.flags.isAvailable);
+            subtitle = "Not available in this element.";
+            break;
+          case "ops":
+            list = list.filter(p => p.flags.isCommittedCurrent || p.flags.isCommittedFuture);
+            subtitle = "Committed to operations in this element.";
+            break;
+          default:
+            subtitle = "All Marines in this element.";
+        }
+      }
+
+      openDetailModal(title, subtitle, list);
+    }
+
+    function openDetailModal(title, subtitle, list) {
+      detailList = list.slice();
+      detailCurrentPage = 1;
+      el.detailTitle.textContent = title || "Detail View";
+      el.detailSubtitle.textContent = subtitle || "";
+      el.detailCount.textContent = `${detailList.length} Marines`;
+      renderDetailPage();
+      el.modalBackdrop.classList.add("show");
+    }
+
+    function renderDetailPage() {
+      const total = detailList.length;
+      el.detailBody.innerHTML = "";
+      if (!total) {
+        el.detailBody.innerHTML =
+          '<div class="empty-state">No Marines match this filter.</div>';
+        el.pageInfo.textContent = "Page 0 / 0";
+        el.btnPrev.disabled = true;
+        el.btnNext.disabled = true;
+        return;
+      }
+      const totalPages = Math.ceil(total / detailPageSize);
+      if (detailCurrentPage < 1) detailCurrentPage = 1;
+      if (detailCurrentPage > totalPages) detailCurrentPage = totalPages;
+
+      const start = (detailCurrentPage - 1) * detailPageSize;
+      const end = Math.min(start + detailPageSize, total);
+      const pageItems = detailList.slice(start, end);
+
+      const table = document.createElement("table");
+      const thead = document.createElement("thead");
+      const tbody = document.createElement("tbody");
+      thead.innerHTML = `
+        <tr>
+          <th>Name</th>
+          <th>Rank</th>
+          <th>MOS</th>
+          <th>Unit / Sec / Sq / Team</th>
+          <th>Status</th>
+          <th>Current Op</th>
+          <th>Future Op</th>
+        </tr>
+      `;
+      for (const p of pageItems) {
+        const tr = document.createElement("tr");
+        const name = `${p.lastName}, ${p.firstName}`;
+        const chain = [
+          p.unit || "—",
+          p.section || "—",
+          p.squad || "—",
+          p.team || "—"
+        ].join(" / ");
+        tr.innerHTML = `
+          <td>${name}</td>
+          <td>${p.rank || ""}</td>
+          <td>${p.mos || ""}</td>
+          <td>${chain}</td>
+          <td>${p.statusRaw || ""}</td>
+          <td>${p.currentOp || ""}</td>
+          <td>${p.futureOp || ""}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+      table.appendChild(thead);
+      table.appendChild(tbody);
+      el.detailBody.appendChild(table);
+
+      el.pageInfo.textContent = `Page ${detailCurrentPage} / ${totalPages}`;
+      el.btnPrev.disabled = detailCurrentPage <= 1;
+      el.btnNext.disabled = detailCurrentPage >= totalPages;
+    }
+
+    function closeDetailModal() {
+      el.modalBackdrop.classList.remove("show");
+    }
+
+    el.btnPrev.addEventListener("click", () => {
+      if (detailCurrentPage > 1) {
+        detailCurrentPage--;
+        renderDetailPage();
+      }
+    });
+
+    el.btnNext.addEventListener("click", () => {
+      const totalPages = Math.ceil(detailList.length / detailPageSize);
+      if (detailCurrentPage < totalPages) {
+        detailCurrentPage++;
+        renderDetailPage();
+      }
+    });
+
+    el.modalBackdrop.addEventListener("click", (e) => {
+      if (e.target === el.modalBackdrop) closeDetailModal();
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeDetailModal();
+    });
+
+    function wireKpiClicks() {
+      document.getElementById("cardTotal").addEventListener("click", () =>
+        openDetailModal("All Marines", "All Marines records loaded from the CSV.", personnel)
+      );
+      document.getElementById("cardAvailable").addEventListener("click", () =>
+        openDetailModal(
+          "Available Marines",
+          "Status Present for Duty / On Hand.",
+          personnel.filter(p => p.flags.isAvailable)
+        )
+      );
+      document.getElementById("cardLeave").addEventListener("click", () =>
+        openDetailModal(
+          "On Leave",
+          "Status indicates Leave.",
+          personnel.filter(p => p.flags.isLeave)
+        )
+      );
+      document.getElementById("cardTad").addEventListener("click", () =>
+        openDetailModal(
+          "TAD Marines",
+          "Status indicates TAD.",
+          personnel.filter(p => p.flags.isTad)
+        )
+      );
+      document.getElementById("cardMed").addEventListener("click", () =>
+        openDetailModal(
+          "Medical / Light / Limited Duty",
+          "Status indicates Medical / Light / Limited duty.",
+          personnel.filter(p => p.flags.isMedical)
+        )
+      );
+      document.getElementById("cardOps").addEventListener("click", () =>
+        openDetailModal(
+          "Committed to Operations",
+          "Marines committed to current and/or future operations.",
+          personnel.filter(p => p.flags.isCommittedCurrent || p.flags.isCommittedFuture)
+        )
+      );
+      document.getElementById("cardMission").addEventListener("click", () =>
+        openDetailModal(
+          "Mission Ready Marines",
+          "Available, not medical, and not committed to operations.",
+          personnel.filter(p =>
+            p.flags.isAvailable &&
+            !p.flags.isMedical &&
+            !p.flags.isCommittedCurrent &&
+            !p.flags.isCommittedFuture
+          )
+        )
+      );
+
+      document.getElementById("cardDrvTrain").addEventListener("click", () => {
+        const list = personnel.filter(p =>
+          (p.full["HUMVEE LICENSE"] || "").trim() ||
+          (p.full["JLTV LICENSE"] || "").trim()
+        );
+        openDetailModal("Driver Qualified", "HUMVEE or JLTV license recorded.", list);
+      });
+
+      document.getElementById("cardTcccTrain").addEventListener("click", () => {
+        const list = personnel.filter(p =>
+          (p.full["TCCC TIER 1"] || "").trim() ||
+          (p.full["TCCC TIER 2"] || "").trim() ||
+          (p.full["TCCC TIER 3"] || "").trim() ||
+          (p.full["TCCC TIER 4"] || "").trim()
+        );
+        openDetailModal("TCCC Qualified", "Any TCCC tier recorded.", list);
+      });
+
+      document.getElementById("cardLdrTrain").addEventListener("click", () => {
+        const list = personnel.filter(p =>
+          (p.full["CORPORALS COURSE"] || "").trim() ||
+          (p.full["SERGEANT SCHOOL"] || "").trim()
+        );
+        openDetailModal("Leadership Courses", "Corporals Course or Sergeant School completed.", list);
+      });
+
+      trainingFields.forEach(tf => {
+        const card = document.getElementById(`card${tf.id}`);
+        if (!card) return;
+        card.addEventListener("click", () => {
+          const list = personnel.filter(p => (p.full[tf.col] || "").trim());
+          openDetailModal(tf.label, `${tf.label} recorded.`, list);
+        });
+      });
+
+      el.kpiOpsCurrent.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openDetailModal(
+          "Current Operations",
+          "Committed to current operations.",
+          personnel.filter(p => p.flags.isCommittedCurrent)
+        );
+      });
+      el.kpiOpsFuture.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openDetailModal(
+          "Future Operations",
+          "Committed to future operations.",
+          personnel.filter(p => p.flags.isCommittedFuture)
+        );
+      });
+    }
+
+    function initCollapsibles() {
+      document.querySelectorAll(".section-header").forEach(header => {
+        const body = header.nextElementSibling;
+        if (!body) return;
+        header.addEventListener("click", () => {
+          body.classList.toggle("collapsed-section");
+          header.classList.toggle("collapsed");
+        });
+      });
+    }
+
+    function collapseByDefault(headerId) {
+      const header = document.getElementById(headerId);
+      if (!header) return;
+      const body = header.nextElementSibling;
+      if (!body) return;
+      body.classList.add("collapsed-section");
+      header.classList.add("collapsed");
+    }
+
+    document.getElementById("csvFileInput").addEventListener("change", (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      el.fileName.textContent = file.name;
+
+      const reader = new FileReader();
+      reader.onload = evt => {
+        const text = String(evt.target.result);
+        const rawRows = parseCSV(text);
+        personnel = rawRows.map(normalizeRow);
+
+        updateSummary();
+        renderMos();
+        renderUnitTable();
+        renderFullMatrix();
+        renderTeamBoard();
+      };
+      reader.readAsText(file);
+    });
+
+    wireKpiClicks();
+    initCollapsibles();
+
+    collapseByDefault("hdrMosPct");
+    collapseByDefault("hdrMatrix");
+    collapseByDefault("hdrTeam");
+
+    if (el.mosPieCanvas) {
+      el.mosPieCanvas.addEventListener("click", handleMosPieClick);
+      el.mosPieCanvas.addEventListener("dblclick", handleMosPieDetail);
+      el.mosPieCanvas.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+        handleMosPieDetail(e);
+      });
+    }
+  </script>
+</body>
+</html>
