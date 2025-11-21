@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <title>Alpha Co. Personnel – Code Name Agony</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#101214">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#101214">
   <style>
     :root {
       --bg-main: #060707;
@@ -1545,11 +1545,18 @@
       pageInfo: document.getElementById("pageInfo")
     };
 
+    // FIXED: robust CSV parser without ?? and with BOM stripping
     function parseCSV(text) {
-      const lines = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n")
-        .filter(line => line.trim().length > 0);
+      const cleaned = text.replace(/^\uFEFF/, "");
+      const lines = cleaned
+        .replace(/\r\n/g, "\n")
+        .replace(/\r/g, "\n")
+        .split("\n")
+        .filter(function (line) { return line.trim().length > 0; });
+
       if (!lines.length) return [];
-      const headers = lines[0].split(",").map(h => h.trim());
+
+      const headers = lines[0].split(",").map(function (h) { return h.trim(); });
       const rows = [];
 
       for (let i = 1; i < lines.length; i++) {
@@ -1557,8 +1564,10 @@
         if (!line.trim()) continue;
         const cols = line.split(",");
         const obj = {};
-        headers.forEach((h, idx) => {
-          obj[h] = (cols[idx] ?? "").trim();
+        headers.forEach(function (h, idx) {
+          let value = cols[idx];
+          if (value === undefined || value === null) value = "";
+          obj[h] = String(value).trim();
         });
         rows.push(obj);
       }
@@ -1713,7 +1722,7 @@
       el.kpiTcccPctValue.textContent = tcccPct + "%";
       el.kpiTcccCount.textContent = `${tcccList.length} Marines`;
 
-      el.kpiLdrPctValue.textContent = ldrPct + "%";
+      el.kpiLdrPctValue.textContent = ldrPct + "%`;
       el.kpiLdrCount.textContent = `${ldrList.length} Marines`;
 
       trainingFields.forEach(tf => {
@@ -2739,23 +2748,36 @@
       header.classList.add("collapsed");
     }
 
-    document.getElementById("csvFileInput").addEventListener("change", (e) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
+    // FIXED: file input handler without optional chaining
+    document.getElementById("csvFileInput").addEventListener("change", function (e) {
+      const input = e.target;
+      if (!input.files || !input.files.length) {
+        return;
+      }
+
+      const file = input.files[0];
       el.fileName.textContent = file.name;
 
       const reader = new FileReader();
-      reader.onload = evt => {
-        const text = String(evt.target.result);
-        const rawRows = parseCSV(text);
-        personnel = rawRows.map(normalizeRow);
+      reader.onload = function (evt) {
+        try {
+          const text = String(evt.target.result);
+          const rawRows = parseCSV(text);
+          personnel = rawRows.map(normalizeRow);
 
-        updateSummary();
-        renderMos();
-        renderUnitTable();
-        renderFullMatrix();
-        renderTeamBoard();
+          console.log("Loaded rows from CSV:", rawRows.length);
+
+          updateSummary();
+          renderMos();
+          renderUnitTable();
+          renderFullMatrix();
+          renderTeamBoard();
+        } catch (err) {
+          console.error("Error reading/parsing CSV:", err);
+          alert("There was an error reading the CSV file. Check the browser console for details.");
+        }
       };
+
       reader.readAsText(file);
     });
 
