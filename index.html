@@ -1545,34 +1545,76 @@
       pageInfo: document.getElementById("pageInfo")
     };
 
-    // FIXED: robust CSV parser without ?? and with BOM stripping
-    function parseCSV(text) {
-      const cleaned = text.replace(/^\uFEFF/, "");
-      const lines = cleaned
-        .replace(/\r\n/g, "\n")
-        .replace(/\r/g, "\n")
-        .split("\n")
-        .filter(function (line) { return line.trim().length > 0; });
+    // --- NEW: robust CSV parsing with header normalization ---
+    function normalizeHeaderName(h) {
+      h = h.trim();
+      if (h.startsWith('"') && h.endsWith('"') && h.length >= 2) {
+        h = h.slice(1, -1);
+      }
+      // Collapse multiple spaces to single (fixes "Current Operation  : Start Time" etc.)
+      h = h.replace(/\s+/g, " ");
+      return h;
+    }
 
+    function splitCsvLine(line) {
+      const result = [];
+      let current = "";
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"') {
+          if (inQuotes && line[i + 1] === '"') {
+            // Escaped quote
+            current += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (ch === "," && !inQuotes) {
+          result.push(current);
+          current = "";
+        } else {
+          current += ch;
+        }
+      }
+      result.push(current);
+      return result;
+    }
+
+    function parseCSV(text) {
+      // Normalize newlines
+      text = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+      // Remove BOM if present
+      if (text.charCodeAt(0) === 0xFEFF) {
+        text = text.slice(1);
+      }
+      const lines = text.split("\n").filter(line => line.trim().length > 0);
       if (!lines.length) return [];
 
-      const headers = lines[0].split(",").map(function (h) { return h.trim(); });
-      const rows = [];
+      const headerCells = splitCsvLine(lines[0]);
+      const headers = headerCells.map(normalizeHeaderName);
 
+      const rows = [];
       for (let i = 1; i < lines.length; i++) {
         const line = lines[i];
         if (!line.trim()) continue;
-        const cols = line.split(",");
+        const cells = splitCsvLine(line);
+        if (cells.length === 1 && !cells[0].trim()) continue;
+
         const obj = {};
-        headers.forEach(function (h, idx) {
-          let value = cols[idx];
-          if (value === undefined || value === null) value = "";
-          obj[h] = String(value).trim();
+        headers.forEach((h, idx) => {
+          let v = cells[idx] ?? "";
+          v = v.trim();
+          if (v.startsWith('"') && v.endsWith('"') && v.length >= 2) {
+            v = v.slice(1, -1);
+          }
+          obj[h] = v;
         });
         rows.push(obj);
       }
       return rows;
     }
+    // --- end CSV parser ---
 
     function normalizeRow(row) {
       const rank = row["Rank"] || "";
@@ -1590,32 +1632,19 @@
       const team = row["Team"] || "";
 
       const currentOp =
-        row["Current Operation"] ||
-        row["Current Operation   "] ||
-        row["Current Operation  "] ||
-        "";
+        row["Current Operation"] || "";
 
       const currentOpStart =
-        row["Current Operation : Start Time"] ||
-        row["Current Operation: Start Time"] ||
-        row["Current Operation  : Start Time"] ||
-        "";
+        row["Current Operation : Start Time"] || "";
 
       const currentOpEnd =
-        row["Current Operation : End Time"] ||
-        row["Current Operation: End Time"] ||
-        row["Current Operation  : End Time"] ||
-        "";
+        row["Current Operation : End Time"] || "";
 
       const futureOp = row["Future Operation"] || "";
       const futureOpStart =
-        row["Future Operation: Start Time"] ||
-        row["Future Operation : Start Time"] ||
-        "";
+        row["Future Operation: Start Time"] || "";
       const futureOpEnd =
-        row["Future Operation: End Time"] ||
-        row["Future Operation : End Time"] ||
-        "";
+        row["Future Operation: End Time"] || "";
 
       const statusLower = statusRaw.toLowerCase();
       const isLeave = statusLower.includes("leave");
@@ -1624,8 +1653,8 @@
         statusLower.includes("medical") ||
         statusLower.includes("light") ||
         statusLower.includes("limited");
-      const isCommittedCurrent = !!currentOp.trim();
-      const isCommittedFuture = !!futureOp.trim();
+      const isCommittedCurrent = !!(currentOp || "").trim();
+      const isCommittedFuture = !!(futureOp || "").trim();
       const isAvailable =
         statusLower.includes("present") ||
         statusLower.includes("on hand") ||
@@ -1722,7 +1751,7 @@
       el.kpiTcccPctValue.textContent = tcccPct + "%";
       el.kpiTcccCount.textContent = `${tcccList.length} Marines`;
 
-      el.kpiLdrPctValue.textContent = ldrPct + "%";
+      el.kpiLdrPctValue.textContent = ldrPct + "%`;
       el.kpiLdrCount.textContent = `${ldrList.length} Marines`;
 
       trainingFields.forEach(tf => {
@@ -2748,36 +2777,23 @@
       header.classList.add("collapsed");
     }
 
-    // FIXED: file input handler without optional chaining
-    document.getElementById("csvFileInput").addEventListener("change", function (e) {
-      const input = e.target;
-      if (!input.files || !input.files.length) {
-        return;
-      }
-
-      const file = input.files[0];
+    document.getElementById("csvFileInput").addEventListener("change", (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
       el.fileName.textContent = file.name;
 
       const reader = new FileReader();
-      reader.onload = function (evt) {
-        try {
-          const text = String(evt.target.result);
-          const rawRows = parseCSV(text);
-          personnel = rawRows.map(normalizeRow);
+      reader.onload = evt => {
+        const text = String(evt.target.result || "");
+        const rawRows = parseCSV(text);
+        personnel = rawRows.map(normalizeRow);
 
-          console.log("Loaded rows from CSV:", rawRows.length);
-
-          updateSummary();
-          renderMos();
-          renderUnitTable();
-          renderFullMatrix();
-          renderTeamBoard();
-        } catch (err) {
-          console.error("Error reading/parsing CSV:", err);
-          alert("There was an error reading the CSV file. Check the browser console for details.");
-        }
+        updateSummary();
+        renderMos();
+        renderUnitTable();
+        renderFullMatrix();
+        renderTeamBoard();
       };
-
       reader.readAsText(file);
     });
 
@@ -2799,4 +2815,3 @@
   </script>
 </body>
 </html>
-
