@@ -5,38 +5,42 @@
   <title>Alpha Co. Personnel – Code Name Agony</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="manifest" href="manifest.webmanifest">
-  <meta name="theme-color" content="#101214">
+  <meta name="theme-color" content="#05070b">
   <style>
     :root {
-      --bg-main: #060707;
-      --bg-header: #101214;
-      --bg-panel: #15181d;
-      --bg-panel-alt: #191d23;
-      --bg-chip: #1f242c;
+  /* AGONY PATCH PALETTE */
+  --bg-main: #050304;
+  --bg-header: #050304;
+  --bg-panel: #080508;
+  --bg-panel-alt: #12080b;
+  --bg-chip: #12080b;
 
-      --line-soft: #252932;
-      --line-strong: #3a3f4a;
+  --line-soft: #2a181c;
+  --line-strong: #4a262e;
 
-      --text-main: #e5e7ea;
-      --text-soft: #8c9098;
-      --text-dim: #5a606a;
+  --text-main: #f6f3f3;
+  --text-soft: #d0c3c3;
+  --text-dim: #89787a;
 
-      --accent-orange: #ff8a3c;
-      --accent-orange-soft: rgba(255, 138, 60, 0.18);
-      --accent-amber: #ffc95e;
-      --accent-red: #ff4b5c;
-      --accent-green: #1fd18a;
-      --accent-blue: #4fd5ff;
+  /* Rope / blood / bone tones */
+  --accent-orange: #c89b4b;        /* rope gold */
+  --accent-orange-soft: rgba(200, 155, 75, 0.22);
+  --accent-amber: #f6df9a;
+  --accent-red: #e03434;           /* blood red */
+  --accent-green: #6f8c4f;         /* muted OD green for status dots */
+  --accent-blue: #cfd5ff;          /* pale steel for secondary accents */
+  --accent-cyan: #ff4b6e;          /* glowing red for lines/glow */
+  --accent-cyan-soft: rgba(255, 75, 110, 0.25);
 
-      --danger: #ff4b5c;
-      --warning: #ffc95e;
-      --success: #1fd18a;
+  --danger: #ff4b6e;
+  --warning: #f6df9a;
+  --success: #6f8c4f;
 
-      --radius-lg: 6px;
-      --radius-md: 4px;
+  --radius-lg: 8px;
+  --radius-md: 5px;
 
-      --shadow-soft: 0 0 18px rgba(0, 0, 0, 0.9);
-    }
+  --shadow-soft: 0 0 26px rgba(0, 0, 0, 0.95);
+}
 
     * {
       box-sizing: border-box;
@@ -49,51 +53,104 @@
       color: var(--text-main);
       min-height: 100vh;
       background:
-        radial-gradient(circle at 20% 0%, rgba(255, 138, 60, 0.08) 0, transparent 40%),
-        radial-gradient(circle at 80% 100%, rgba(31, 209, 138, 0.1) 0, transparent 45%),
-        #060707;
+        radial-gradient(circle at 10% 0%, rgba(0, 240, 255, 0.14) 0, transparent 45%),
+        radial-gradient(circle at 85% 100%, rgba(255, 154, 75, 0.18) 0, transparent 50%),
+        radial-gradient(circle at -10% 100%, rgba(79, 213, 255, 0.14) 0, transparent 50%),
+        #05070b;
       padding: 0;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* subtle scanlines */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        repeating-linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0.04),
+          rgba(255, 255, 255, 0.04) 1px,
+          transparent 1px,
+          transparent 3px
+        );
+      mix-blend-mode: soft-light;
+      opacity: 0.22;
+      z-index: -1;
+    }
+
+    /* faint grid */
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(to right, rgba(0, 240, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 240, 255, 0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      opacity: 0.14;
+      z-index: -1;
     }
 
     .top-bar {
-      background: var(--bg-header);
-      border-bottom: 1px solid var(--line-strong);
-      box-shadow: var(--shadow-soft);
-      padding: 6px 24px 4px;
+      background: radial-gradient(circle at 0 0, rgba(0, 240, 255, 0.16) 0, transparent 50%),
+                  radial-gradient(circle at 100% 0, rgba(255, 154, 75, 0.14) 0, transparent 55%),
+                  var(--bg-header);
+      border-bottom: 1px solid var(--accent-cyan-soft);
+      box-shadow:
+        0 0 26px rgba(0, 0, 0, 1),
+        0 0 32px rgba(0, 240, 255, 0.4);
+      padding: 8px 26px 6px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
 
     .top-left {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
 
     .brand-block {
-      width: 26px;
-      height: 26px;
-      border-radius: 3px;
-      background: linear-gradient(135deg, #222836, #0d0f12);
-      border: 1px solid #3b404c;
+      width: 28px;
+      height: 28px;
+      border-radius: 4px;
+      background: radial-gradient(circle at 20% 0%, #0ff 0, #07101c 48%, #04060a 100%);
+      border: 1px solid #35b8ff;
       position: relative;
       overflow: hidden;
+      box-shadow:
+        0 0 16px rgba(0, 240, 255, 0.7),
+        0 0 3px rgba(0, 240, 255, 0.9) inset;
     }
 
     .brand-block::before,
     .brand-block::after {
       content: "";
       position: absolute;
-      inset: 6px 4px;
+      inset: 5px 4px;
       border-radius: 2px;
-      border: 1px solid rgba(91, 97, 110, 0.7);
+      border: 1px solid rgba(8, 255, 205, 0.7);
+    }
+
+    .brand-block::after {
+      inset: 9px 7px;
+      border-style: dashed;
+      border-color: rgba(0, 0, 0, 0.85);
+      opacity: 0.9;
     }
 
     .brand-title {
       font-family: "Rajdhani", system-ui;
-      letter-spacing: 0.25em;
+      letter-spacing: 0.28em;
       text-transform: uppercase;
       font-size: 0.78rem;
       color: var(--text-main);
@@ -102,15 +159,18 @@
     .brand-sub {
       font-family: "Rajdhani", system-ui;
       text-transform: uppercase;
-      letter-spacing: 0.22em;
+      letter-spacing: 0.24em;
       font-size: 0.58rem;
-      color: var(--accent-orange);
+      color: var(--accent-cyan);
+      text-shadow:
+        0 0 10px rgba(0, 240, 255, 0.9),
+        0 0 16px rgba(0, 74, 255, 0.8);
     }
 
     .top-center {
       display: flex;
       align-items: center;
-      gap: 18px;
+      gap: 20px;
       font-size: 0.7rem;
       color: var(--text-soft);
     }
@@ -124,22 +184,28 @@
     }
 
     .chip {
-      background: var(--bg-chip);
-      border-radius: var(--radius-md);
-      border: 1px solid var(--line-strong);
-      padding: 3px 8px;
+      background: radial-gradient(circle at 0 0, rgba(0, 240, 255, 0.22) 0, transparent 55%),
+                  var(--bg-chip);
+      border-radius: 99px;
+      border: 1px solid var(--accent-cyan-soft);
+      padding: 4px 10px;
       display: inline-flex;
       align-items: center;
       gap: 8px;
       font-size: 0.7rem;
+      box-shadow:
+        0 0 14px rgba(0, 0, 0, 0.9),
+        0 0 12px rgba(0, 240, 255, 0.5);
     }
 
     .chip-dot {
-      width: 6px;
-      height: 6px;
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
       background: var(--accent-green);
-      box-shadow: 0 0 6px rgba(31, 209, 138, 0.8);
+      box-shadow:
+        0 0 6px rgba(69, 255, 180, 0.9),
+        0 0 18px rgba(0, 0, 0, 0.9);
     }
 
     .top-right {
@@ -150,35 +216,103 @@
     }
 
     .status-pill {
-      padding: 3px 10px;
-      border-radius: var(--radius-md);
+      padding: 4px 12px 4px 18px;
+      border-radius: 999px;
       border: 1px solid var(--accent-green);
       color: var(--accent-green);
       text-transform: uppercase;
       letter-spacing: 0.18em;
       font-family: "Rajdhani", system-ui;
       font-size: 0.6rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .status-pill::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 50%;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      transform: translateY(-50%);
+      background: var(--accent-green);
+      box-shadow: 0 0 12px rgba(69, 255, 180, 0.9);
     }
 
     .user-pill {
-      padding: 3px 10px;
-      border-radius: var(--radius-md);
+      padding: 4px 10px;
+      border-radius: 999px;
       border: 1px solid var(--line-strong);
       color: var(--text-soft);
       font-size: 0.7rem;
+      background: linear-gradient(135deg, rgba(0, 0, 0, 0.7), rgba(6, 18, 30, 0.9));
     }
 
     .page {
-      max-width: 1440px;
-      margin: 0 auto;
-      padding: 14px 20px 24px;
-    }
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 14px 20px 24px;
+  position: relative;
+  z-index: 0;
+}
+
+/* --------------------------------------------
+   AGONY SEAL — STRONGER + SLOW PULSE ANIMATION
+   -------------------------------------------- */
+.page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  background:
+    radial-gradient(circle at center,
+      rgba(0, 0, 0, 0.15) 0%,
+      rgba(0, 0, 0, 0.55) 50%,
+      rgba(0, 0, 0, 0.9) 100%
+    ),
+    url("agony-bg.png") center center no-repeat;
+  background-size: 95vmin;   /* larger, more dominant */
+  opacity: 0.72;             /* stronger visibility */
+  filter: drop-shadow(0 0 45px rgba(255, 105, 70, 0.45))
+          drop-shadow(0 0 65px rgba(255, 70, 50, 0.35))
+          blur(0.7px);
+  pointer-events: none;
+  z-index: -1;
+  animation: agonyPulse 13s ease-in-out infinite;
+}
+
+/* Slow holographic breathing animation */
+@keyframes agonyPulse {
+  0% {
+    opacity: 0.62;
+    transform: scale(0.97);
+    filter: drop-shadow(0 0 25px rgba(255, 80, 50, 0.35))
+            drop-shadow(0 0 35px rgba(200, 50, 30, 0.25))
+            blur(0.6px);
+  }
+  50% {
+    opacity: 0.80;
+    transform: scale(1.03);
+    filter: drop-shadow(0 0 55px rgba(255, 110, 80, 0.65))
+            drop-shadow(0 0 95px rgba(255, 70, 50, 0.5))
+            blur(0.4px);
+  }
+  100% {
+    opacity: 0.62;
+    transform: scale(0.97);
+    filter: drop-shadow(0 0 25px rgba(255, 80, 50, 0.35))
+            drop-shadow(0 0 35px rgba(200, 50, 30, 0.25))
+            blur(0.6px);
+  }
+}
 
     main {
       display: flex;
       flex-direction: column;
       gap: 16px;
-      margin-top: 2px;
+      margin-top: 4px;
     }
 
     .section-header {
@@ -191,9 +325,22 @@
       color: var(--text-soft);
       margin-bottom: 6px;
       position: relative;
-      padding-left: 14px;
+      padding-left: 16px;
       cursor: pointer;
       user-select: none;
+    }
+
+    .section-header::after {
+      content: "";
+      position: absolute;
+      right: 0;
+      top: 50%;
+      width: 140px;
+      height: 1px;
+      transform: translateY(-50%);
+      background: linear-gradient(to right, var(--accent-cyan), transparent);
+      opacity: 0.7;
+      pointer-events: none;
     }
 
     .section-header .bar {
@@ -209,7 +356,8 @@
       position: absolute;
       left: 0;
       font-size: 0.7rem;
-      color: var(--text-soft);
+      color: var(--accent-cyan);
+      text-shadow: 0 0 10px rgba(0, 240, 255, 0.8);
       transition: transform 0.15s ease;
     }
 
@@ -248,25 +396,58 @@
     }
 
     .summary-card {
-      background: var(--bg-panel);
+      background:
+        radial-gradient(circle at 0 0, rgba(0, 240, 255, 0.16) 0, transparent 55%),
+        rgba(5, 5, 5, 0.35);
+      backdrop-filter: blur(3px);
       border-radius: var(--radius-lg);
       border: 1px solid var(--line-soft);
       box-shadow: var(--shadow-soft);
-      padding: 10px 10px 8px;
+      padding: 10px 11px 8px;
       position: relative;
       overflow: hidden;
       cursor: default;
+      transition:
+        transform 0.14s ease,
+        box-shadow 0.14s ease,
+        border-color 0.16s ease;
     }
 
     .summary-card::before {
       content: "";
       position: absolute;
-      left: 0;
+      left: -1px;
       top: 0;
       bottom: 0;
       width: 3px;
-      background: var(--accent-orange);
-      opacity: 0.85;
+      background: linear-gradient(
+        to bottom,
+        var(--accent-cyan),
+        var(--accent-orange)
+      );
+      opacity: 0.9;
+    }
+
+    .summary-card::after {
+      content: "";
+      position: absolute;
+      right: -18px;
+      top: -18px;
+      width: 70px;
+      height: 70px;
+      border-top: 1px solid var(--accent-cyan-soft);
+      border-left: 1px solid var(--accent-cyan-soft);
+      transform: skewX(-35deg);
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .summary-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent-cyan-soft);
+      box-shadow:
+        0 0 30px rgba(0, 0, 0, 1),
+        0 0 18px rgba(0, 240, 255, 0.5);
     }
 
     .summary-title-row {
@@ -282,12 +463,13 @@
     }
 
     .summary-tag {
-      border-radius: var(--radius-md);
+      border-radius: 999px;
       border: 1px solid var(--line-strong);
-      padding: 2px 6px;
+      padding: 2px 7px;
       font-size: 0.62rem;
       color: var(--text-dim);
       text-transform: uppercase;
+      background: rgba(0, 0, 0, 0.5);
     }
 
     .summary-value {
@@ -298,10 +480,10 @@
       color: var(--text-main);
     }
 
-    .summary-value.kpi-available { color: var(--success); }
+    .summary-value.kpi-available { color: var(--success); text-shadow: 0 0 12px rgba(69, 255, 180, 0.8); }
     .summary-value.kpi-leave { color: var(--warning); }
-    .summary-value.kpi-tad { color: #ff9352; }
-    .summary-value.kpi-med { color: var(--danger); }
+    .summary-value.kpi-tad { color: #ffb56e; }
+    .summary-value.kpi-med { color: var(--danger); text-shadow: 0 0 10px rgba(255, 75, 110, 0.9); }
     .summary-value.kpi-ops { color: var(--accent-orange); }
     .summary-value.kpi-mission,
     .summary-value.kpi-train { color: var(--accent-blue); }
@@ -316,21 +498,23 @@
     }
 
     .summary-pill {
-      border-radius: var(--radius-md);
+      border-radius: 999px;
       border: 1px solid var(--line-soft);
-      padding: 2px 6px;
+      padding: 2px 7px;
       font-size: 0.65rem;
       color: var(--accent-orange);
+      background: rgba(0, 0, 0, 0.52);
     }
 
     .kpi-number {
       cursor: pointer;
-      transition: transform 0.1s ease, color 0.15s ease;
+      transition: transform 0.1s ease, color 0.15s ease, text-shadow 0.15s ease;
     }
 
     .kpi-number:hover {
       transform: translateY(-1px);
-      color: var(--accent-orange);
+      color: var(--accent-cyan);
+      text-shadow: 0 0 12px rgba(0, 240, 255, 0.9);
     }
 
     .icon-alert {
@@ -401,10 +585,15 @@
     }
 
     .file-hint {
-      padding: 4px 8px;
+      padding: 5px 9px;
       border-radius: var(--radius-md);
-      border: 1px solid var(--line-soft);
-      background: var(--bg-panel);
+      border: 1px dashed var(--accent-cyan-soft);
+      background: radial-gradient(circle at 0 0, rgba(0, 240, 255, 0.18) 0, transparent 55%),
+                  var(--bg-panel);
+    }
+
+    .file-hint code {
+      color: var(--accent-amber);
     }
 
     .file-upload {
@@ -413,16 +602,19 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 4px 10px;
-      border-radius: var(--radius-md);
+      padding: 5px 12px;
+      border-radius: 999px;
       border: 1px solid var(--accent-orange);
-      background: var(--bg-panel-alt);
+      background: linear-gradient(135deg, rgba(255, 154, 75, 0.18), rgba(5, 7, 11, 0.95));
       color: var(--accent-orange);
       cursor: pointer;
       font-size: 0.7rem;
       text-transform: uppercase;
       letter-spacing: 0.14em;
       font-family: "Rajdhani", system-ui;
+      box-shadow:
+        0 0 18px rgba(0, 0, 0, 0.9),
+        0 0 14px rgba(255, 154, 75, 0.5);
     }
 
     .file-upload input[type="file"] {
@@ -435,6 +627,7 @@
     .file-name {
       font-size: 0.7rem;
       color: var(--text-soft);
+      opacity: 0.9;
     }
 
     .two-column {
@@ -450,12 +643,16 @@
     }
 
     .panel {
-      background: var(--bg-panel);
+      background:
+        radial-gradient(circle at 0 0, rgba(0, 240, 255, 0.12) 0, transparent 55%),
+        rgba(10, 8, 10, 0.35);
+      backdrop-filter: blur(3px);
       border-radius: var(--radius-lg);
       border: 1px solid var(--line-soft);
       box-shadow: var(--shadow-soft);
       padding: 8px 10px 8px;
       position: relative;
+      overflow: hidden;
     }
 
     .panel::before {
@@ -465,8 +662,22 @@
       top: 0;
       right: 0;
       height: 2px;
-      background: linear-gradient(to right, var(--accent-orange), transparent 40%);
-      opacity: 0.75;
+      background: linear-gradient(to right, var(--accent-cyan), transparent 40%);
+      opacity: 0.9;
+    }
+
+    .panel::after {
+      content: "";
+      position: absolute;
+      right: -20px;
+      bottom: -20px;
+      width: 70px;
+      height: 70px;
+      border-bottom: 1px solid var(--accent-orange-soft);
+      border-left: 1px solid var(--accent-orange-soft);
+      transform: skewX(35deg);
+      opacity: 0.7;
+      pointer-events: none;
     }
 
     .panel-title-row {
@@ -512,7 +723,7 @@
 
     .sw-available { background: var(--success); }
     .sw-leave { background: var(--warning); }
-    .sw-tad { background: #ff9352; }
+    .sw-tad { background: #ffb56e; }
     .sw-med { background: var(--danger); }
     .sw-current { background: #ff7c7c; }
     .sw-future { background: var(--accent-orange); }
@@ -521,10 +732,12 @@
       margin-top: 6px;
       border-radius: var(--radius-md);
       border: 1px solid var(--line-soft);
-      background: #101318;
+      background: rgba(5, 10, 19, 0.28);
+      backdrop-filter: blur(3px);
       max-height: 360px;
       overflow: auto;
       position: relative;
+      box-shadow: inset 0 0 14px rgba(0, 0, 0, 0.9);
     }
 
     table {
@@ -538,28 +751,29 @@
     td {
       padding: 5px 8px;
       text-align: left;
-      border-bottom: 1px solid #171b23;
+      border-bottom: 1px solid #111726;
       white-space: nowrap;
     }
 
     th {
       position: sticky;
       top: 0;
-      background: #101319;
+      background: #050912;
       font-family: "Rajdhani", system-ui;
       text-transform: uppercase;
       letter-spacing: 0.16em;
       font-size: 0.65rem;
       color: var(--text-dim);
       z-index: 1;
+      box-shadow: 0 2px 0 rgba(0, 0, 0, 0.9);
     }
 
     tr:nth-child(even) td {
-      background: #0d1016;
+      background: rgba(5, 8, 18, 0.75);
     }
 
     tr:hover td {
-      background: #181c24;
+      background: #0d1a27;
     }
 
     td.numeric {
@@ -582,34 +796,38 @@
       font: inherit;
       text-underline-offset: 3px;
       text-decoration: underline;
-      transition: color 0.15s ease;
+      transition: color 0.15s ease, text-shadow 0.15s ease;
     }
 
     .clickable-number:hover {
-      color: var(--accent-orange);
+      color: var(--accent-cyan);
+      text-shadow: 0 0 10px rgba(0, 240, 255, 0.8);
     }
 
     .clickable-number:disabled {
       color: var(--text-dim);
       text-decoration: none;
       cursor: default;
+      text-shadow: none;
     }
 
     .unit-btn,
     .squad-btn {
       border: none;
       background: none;
-      color: var(--accent-orange);
+      color: var(--accent-cyan);
       cursor: pointer;
       padding: 0;
       font: inherit;
       text-underline-offset: 3px;
       text-decoration: underline;
+      transition: color 0.15s ease, text-shadow 0.15s ease;
     }
 
     .unit-btn:hover,
     .squad-btn:hover {
       color: var(--accent-amber);
+      text-shadow: 0 0 10px rgba(255, 201, 94, 0.8);
     }
 
     td.unit-cell {
@@ -632,10 +850,13 @@
     }
 
     #mosPieCanvas {
-      background: #0c0f14;
-      border-radius: 4px;
-      border: 1px solid var(--line-soft);
+      background: radial-gradient(circle at 50% 0, rgba(0, 240, 255, 0.3) 0, #050912 55%);
+      border-radius: 6px;
+      border: 1px solid var(--accent-cyan-soft);
       cursor: pointer;
+      box-shadow:
+        0 0 18px rgba(0, 0, 0, 1),
+        0 0 24px rgba(0, 240, 255, 0.6);
     }
 
     .mos-pie-legend-item {
@@ -653,11 +874,16 @@
     }
 
     .matrix-panel {
-      background: var(--bg-panel);
+      background:
+        radial-gradient(circle at 0 0, rgba(0, 240, 255, 0.12) 0, transparent 55%),
+        rgba(10, 8, 10, 0.35);
+      backdrop-filter: blur(3px);
       border-radius: var(--radius-lg);
       border: 1px solid var(--line-soft);
       box-shadow: var(--shadow-soft);
       padding: 8px 10px 10px;
+      position: relative;
+      overflow: hidden;
     }
 
     .matrix-panel .table-shell {
@@ -665,7 +891,7 @@
     }
 
     .matrix-unit-row td {
-      background: #1d2027;
+      background: rgba(11, 17, 29, 0.9);
       font-family: "Rajdhani", system-ui;
       text-transform: uppercase;
       letter-spacing: 0.16em;
@@ -679,6 +905,8 @@
       margin-right: 6px;
       display: inline-block;
       width: 10px;
+      color: var(--accent-cyan);
+      text-shadow: 0 0 10px rgba(0, 240, 255, 0.9);
     }
 
     .unit-member-row.hidden {
@@ -696,11 +924,13 @@
       font-size: 0.65rem;
       text-transform: uppercase;
       letter-spacing: 0.12em;
+      background: rgba(0, 0, 0, 0.6);
     }
 
     .cap-chip.on {
       border-color: var(--success);
       color: var(--success);
+      text-shadow: 0 0 10px rgba(69, 255, 180, 0.9);
     }
 
     .cap-chip.off {
@@ -711,7 +941,8 @@
     .modal-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.8);
+      background: radial-gradient(circle at 20% 0, rgba(0, 240, 255, 0.32) 0, transparent 50%),
+                  rgba(0, 0, 0, 0.92);
       display: none;
       align-items: center;
       justify-content: center;
@@ -725,13 +956,32 @@
     .modal {
       width: min(880px, calc(100% - 30px));
       max-height: 80vh;
-      background: #111317;
+      background: rgba(5, 7, 12, 0.45);
+      backdrop-filter: blur(4px);
       border-radius: var(--radius-lg);
-      border: 1px solid var(--accent-orange-soft);
-      box-shadow: 0 0 28px rgba(0, 0, 0, 0.9);
+      border: 1px solid var(--accent-cyan-soft);
+      box-shadow:
+        0 0 32px rgba(0, 0, 0, 1),
+        0 0 30px rgba(0, 240, 255, 0.6);
       display: flex;
       flex-direction: column;
       padding: 8px 10px 8px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .modal::before {
+      content: "";
+      position: absolute;
+      right: -30px;
+      top: -30px;
+      width: 120px;
+      height: 120px;
+      border-top: 1px solid var(--accent-orange-soft);
+      border-left: 1px solid var(--accent-orange-soft);
+      transform: skewX(-30deg);
+      opacity: 0.7;
+      pointer-events: none;
     }
 
     .modal-header {
@@ -748,7 +998,8 @@
       text-transform: uppercase;
       letter-spacing: 0.18em;
       font-size: 0.78rem;
-      color: var(--accent-orange);
+      color: var(--accent-cyan);
+      text-shadow: 0 0 12px rgba(0, 240, 255, 0.9);
     }
 
     .modal-sub {
@@ -759,29 +1010,33 @@
 
     .modal-close {
       border: 1px solid var(--line-soft);
-      background: #191c23;
+      background: #101520;
       color: var(--text-soft);
       border-radius: var(--radius-md);
       font-size: 0.7rem;
-      padding: 3px 8px;
+      padding: 3px 9px;
       cursor: pointer;
       text-transform: uppercase;
       letter-spacing: 0.15em;
       font-family: "Rajdhani", system-ui;
+      transition: border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
     }
 
     .modal-close:hover {
-      border-color: var(--accent-orange);
-      color: var(--accent-orange);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+      box-shadow: 0 0 14px rgba(0, 240, 255, 0.7);
     }
 
     .modal-body {
       flex: 1;
       border-radius: var(--radius-md);
       border: 1px solid var(--line-soft);
-      background: #0e1015;
+      background: rgba(5, 9, 18, 0.25);
+      backdrop-filter: blur(2px);
       padding: 6px 8px;
       overflow: auto;
+      box-shadow: inset 0 0 14px rgba(0, 0, 0, 0.9);
     }
 
     .modal-body table {
@@ -804,6 +1059,7 @@
       border: 1px solid var(--line-soft);
       padding: 2px 8px;
       font-size: 0.68rem;
+      background: rgba(0, 0, 0, 0.6);
     }
 
     .pager {
@@ -815,24 +1071,27 @@
     .pager-btn {
       border-radius: var(--radius-md);
       border: 1px solid var(--line-soft);
-      background: #191c23;
+      background: #101520;
       color: var(--text-soft);
       font-size: 0.68rem;
-      padding: 2px 8px;
+      padding: 2px 9px;
       cursor: pointer;
       text-transform: uppercase;
       letter-spacing: 0.12em;
       font-family: "Rajdhani", system-ui;
+      transition: border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
     }
 
     .pager-btn:disabled {
       opacity: 0.45;
       cursor: default;
+      box-shadow: none;
     }
 
     .pager-btn:hover:not(:disabled) {
-      border-color: var(--accent-orange);
-      color: var(--accent-orange);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.7);
     }
 
     .hidden {
@@ -1185,18 +1444,6 @@
             <span class="summary-pill" id="kpiCiarCount">0 Marines</span>
           </div>
         </article>
-
-        <article class="summary-card" id="cardLles">
-          <div class="summary-title-row">
-            <span>LLES</span>
-            <span class="summary-tag">Legal</span>
-          </div>
-          <div class="summary-value kpi-train kpi-number" id="kpiLlesPctValue">0%</div>
-          <div class="summary-subrow">
-            <span>Legal / Ethics training.</span>
-            <span class="summary-pill" id="kpiLlesCount">0 Marines</span>
-          </div>
-        </article>
       </section>
 
       <!-- STRUCTURE OVERVIEW (open) -->
@@ -1285,25 +1532,6 @@
                   <tbody></tbody>
                 </table>
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- MOS DONUT (collapsed by default) -->
-      <div class="section-header" id="hdrMosPct" style="margin-top:10px;">
-        <span>MOS distribution – percentage</span>
-        <div class="bar"></div>
-      </div>
-      <section class="panel" id="sectionMosPct">
-        <div class="mos-pie-layout">
-          <canvas id="mosPieCanvas" width="260" height="190"></canvas>
-          <div>
-            <div class="panel-subtext">
-              Click a donut segment to select; double-click or right-click to open the MOS detail list.
-            </div>
-            <div id="mosPieInfo" class="panel-subtext" style="margin-top:8px;color:var(--accent-amber);">
-              No MOS selected. Click on the donut to inspect.
             </div>
           </div>
         </div>
@@ -1545,13 +1773,12 @@
       pageInfo: document.getElementById("pageInfo")
     };
 
-    // --- NEW: robust CSV parsing with header normalization ---
+    // --- CSV parsing with header normalization ---
     function normalizeHeaderName(h) {
       h = h.trim();
       if (h.startsWith('"') && h.endsWith('"') && h.length >= 2) {
         h = h.slice(1, -1);
       }
-      // Collapse multiple spaces to single (fixes "Current Operation  : Start Time" etc.)
       h = h.replace(/\s+/g, " ");
       return h;
     }
@@ -1564,7 +1791,6 @@
         const ch = line[i];
         if (ch === '"') {
           if (inQuotes && line[i + 1] === '"') {
-            // Escaped quote
             current += '"';
             i++;
           } else {
@@ -1582,9 +1808,7 @@
     }
 
     function parseCSV(text) {
-      // Normalize newlines
       text = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
-      // Remove BOM if present
       if (text.charCodeAt(0) === 0xFEFF) {
         text = text.slice(1);
       }
@@ -1744,7 +1968,6 @@
       el.kpiTcccPctValue.textContent = tcccPct + "%";
       el.kpiTcccCount.textContent = `${tcccList.length} Marines`;
 
-      // FIXED LINE HERE (removed stray backtick that was breaking JS)
       el.kpiLdrPctValue.textContent = ldrPct + "%";
       el.kpiLdrCount.textContent = `${ldrList.length} Marines`;
 
@@ -1861,8 +2084,8 @@
       const selectedR = r + 6;
 
       const palette = [
-        "#ff8a3c","#ffc95e","#1fd18a","#ff4b5c",
-        "#8e8cff","#4fd5ff","#ff7c7c","#9be15d","#f6d365"
+        "#00f0ff","#ff9a4b","#ffc95e","#45ffb4",
+        "#ff4b6e","#4fd5ff","#8e8cff","#9be15d","#f6d365"
       ];
 
       let start = -Math.PI / 2;
@@ -1894,7 +2117,7 @@
 
       ctx.beginPath();
       ctx.arc(cx, cy, innerR, 0, Math.PI * 2);
-      ctx.fillStyle = "#101318";
+      ctx.fillStyle = "#050912";
       ctx.fill();
 
       ctx.fillStyle = "#ccc";
@@ -2098,8 +2321,8 @@
         tdUnit.colSpan = fullColumns.length;
         const arrowSpan = document.createElement("span");
         arrowSpan.className = "matrix-unit-toggle";
-        arrowSpan.textContent = "▶";
         arrowSpan.dataset.arrowFor = unit;
+        arrowSpan.textContent = "▶";
         tdUnit.appendChild(arrowSpan);
         const labelSpan = document.createElement("span");
         labelSpan.textContent = ` ${unit}  (${unitList.length} Marines)`;
@@ -2372,7 +2595,7 @@
 
         const hasTieNUser = seg.some(p => (p.full["TIE-N USER"] || "").trim());
         const hasTieNUa = seg.some(p => (p.full["TIE-N UA"] || "").trim());
-        const hasTieNSa = seg.some(p => (p.full["TIE-N SA"] || "").trim());
+        const hasTieNSa = seg.some(p => (p.full["TIE-NS SA"] || "").trim());
         const hasTieSUser = seg.some(p => (p.full["TIE-S USER"] || "").trim());
         const hasTieSUa = seg.some(p => (p.full["TIE-S UA"] || "").trim());
         const hasTieSSa = seg.some(p => (p.full["TIE-S SA"] || "").trim());
@@ -2794,7 +3017,6 @@
     wireKpiClicks();
     initCollapsibles();
 
-    collapseByDefault("hdrMosPct");
     collapseByDefault("hdrMatrix");
     collapseByDefault("hdrTeam");
 
