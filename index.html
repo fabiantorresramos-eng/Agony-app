@@ -1631,20 +1631,13 @@
       const squad = row["Squad"] || "";
       const team = row["Team"] || "";
 
-      const currentOp =
-        row["Current Operation"] || "";
-
-      const currentOpStart =
-        row["Current Operation : Start Time"] || "";
-
-      const currentOpEnd =
-        row["Current Operation : End Time"] || "";
+      const currentOp = row["Current Operation"] || "";
+      const currentOpStart = row["Current Operation : Start Time"] || "";
+      const currentOpEnd = row["Current Operation : End Time"] || "";
 
       const futureOp = row["Future Operation"] || "";
-      const futureOpStart =
-        row["Future Operation: Start Time"] || "";
-      const futureOpEnd =
-        row["Future Operation: End Time"] || "";
+      const futureOpStart = row["Future Operation: Start Time"] || "";
+      const futureOpEnd = row["Future Operation: End Time"] || "";
 
       const statusLower = statusRaw.toLowerCase();
       const isLeave = statusLower.includes("leave");
@@ -1751,7 +1744,8 @@
       el.kpiTcccPctValue.textContent = tcccPct + "%";
       el.kpiTcccCount.textContent = `${tcccList.length} Marines`;
 
-      el.kpiLdrPctValue.textContent = ldrPct + "%`;
+      // FIXED LINE HERE (removed stray backtick that was breaking JS)
+      el.kpiLdrPctValue.textContent = ldrPct + "%";
       el.kpiLdrCount.textContent = `${ldrList.length} Marines`;
 
       trainingFields.forEach(tf => {
