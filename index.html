@@ -1148,7 +1148,44 @@ body {
   .legend-item,
   .badge-count {
     color: #e8e8e8 !important;
-  }
+  }/* ---------------------------------------------------
+   FORCE WHITE TEXT OVERRIDE FOR ALL UI ELEMENTS
+   --------------------------------------------------- */
+
+table, th, td {
+  color: #ffffff !important;
+}
+
+.summary-title-row,
+.summary-subrow,
+.summary-tag,
+.matrix-unit-row td,
+.unit-btn,
+.squad-btn,
+.cap-chip,
+.badge-count,
+.panel-subtext,
+.legend-item,
+.file-name,
+.top-label {
+  color: #ffffff !important;
+}
+
+.cap-chip.on {
+  color: #ffffff !important;
+  border-color: #ffffff !important;
+}
+
+.unit-btn:hover,
+.squad-btn:hover {
+  color: #ffffff !important;
+  text-shadow: 0 0 8px rgba(255,255,255,0.8);
+}
+
+tr:hover td {
+  background: rgba(255,255,255,0.08) !important;
+  color: #ffffff !important;
+}
   </style>
 </head>
 <body>
@@ -3083,5 +3120,6 @@ body {
   </script>
 </body>
 </html>
+
 
 
