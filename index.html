@@ -2891,17 +2891,22 @@ tr:hover td {
       const table = document.createElement("table");
       const thead = document.createElement("thead");
       const tbody = document.createElement("tbody");
+
+      // ✨ Add HUMVEE and JLTV columns
       thead.innerHTML = `
         <tr>
           <th>Name</th>
           <th>Rank</th>
           <th>MOS</th>
+          <th>HUMVEE</th>
+          <th>JLTV</th>
           <th>Unit / Sec / Sq / Team</th>
           <th>Status</th>
           <th>Current Op</th>
           <th>Future Op</th>
         </tr>
       `;
+
       for (const p of pageItems) {
         const tr = document.createElement("tr");
         const name = `${p.lastName}, ${p.firstName}`;
@@ -2911,10 +2916,17 @@ tr:hover td {
           p.squad || "—",
           p.team || "—"
         ].join(" / ");
+
+        // ✅ Check which license(s) each Marine has
+        const humvee = (p.full["HUMVEE LICENSE"] || "").trim() ? "✓" : "";
+        const jltv   = (p.full["JLTV LICENSE"] || "").trim() ? "✓" : "";
+
         tr.innerHTML = `
           <td>${name}</td>
           <td>${p.rank || ""}</td>
           <td>${p.mos || ""}</td>
+          <td>${humvee}</td>
+          <td>${jltv}</td>
           <td>${chain}</td>
           <td>${p.statusRaw || ""}</td>
           <td>${p.currentOp || ""}</td>
@@ -3120,6 +3132,7 @@ tr:hover td {
   </script>
 </body>
 </html>
+
 
 
 
