@@ -1755,2903 +1755,1459 @@
     </div>
   </div>
 
-  <script>
-    function applyKpiColor(element, percent) {
-      element.classList.remove("kpi-red", "kpi-yellow", "kpi-green");
-      if (percent <= 40) {
-        element.classList.add("kpi-red");
-      } else if (percent <= 80) {
-        element.classList.add("kpi-yellow");
-      } else {
-        element.classList.add("kpi-green");
-      }
-    }
-
-    let personnel = [];
-
-    let detailList = [];
-    const detailPageSize = 20;
-    let detailCurrentPage = 1;
-
-    const fullColumns = [
-      "UNIT","Rank","Last Name","First Name","EDIPI","Email","BIC","Status",
-      "Status Start","Status End Date","MOS","Billet","Clearance","Section",
-      "Squad","Team",
-      "MCEN-S USER","MCEN-N USER","MCEN-N ADMIN","MCEN-S ADMIN",
-      "TIE-N USER","TIE-N UA","TIE-N SA","TIE-S USER","TIE-S UA","TIE-S SA",
-      "TIE-NS USER","TIE-NS UA","TIE-NS SA","TIE-N NA","TIE-S NA","TIE-NA NA",
-      "PFT","CFT","ARQ","HEIGHT AND WEIGHT","GAS CHAMBER",
-      "SAPR","CYBER AWARENESS/PII","RECORDS MANAGEMENT","PAC","UMAPIT",
-      "RISK MANAGEMENT","OPSEC","LV 1 AT","CIAR","LLES","CORPORALS COURSE",
-      "SERGEANT SCHOOL","CPTR","HUMVEE LICENSE","JLTV LICENSE","MAI","MCWST",
-      "TCCC TIER 1","TCCC TIER 2","TCCC TIER 3","TCCC TIER 4",
-      "Current Operation","Current Operation : Start Time","Current Operation : End Time",
-      "Future Operation","Future Operation: Start Time","Future Operation: End Time"
-    ];
-
-    const trainingFields = [
-      { id: "Pft", label: "PFT", col: "PFT" },
-      { id: "Cft", label: "CFT", col: "CFT" },
-      { id: "Arq", label: "ARQ", col: "ARQ" },
-      { id: "Htwt", label: "HEIGHT AND WEIGHT", col: "HEIGHT AND WEIGHT" },
-      { id: "Gas", label: "GAS CHAMBER", col: "GAS CHAMBER" },
-      { id: "Sapr", label: "SAPR", col: "SAPR" },
-      { id: "Cyber", label: "CYBER AWARENESS/PII", col: "CYBER AWARENESS/PII" },
-      { id: "Records", label: "RECORDS MANAGEMENT", col: "RECORDS MANAGEMENT" },
-      { id: "Pac", label: "PAC", col: "PAC" },
-      { id: "Umapit", label: "UMAPIT", col: "UMAPIT" },
-      { id: "Risk", label: "RISK MANAGEMENT", col: "RISK MANAGEMENT" },
-      { id: "Opsec", label: "OPSEC", col: "OPSEC" },
-      { id: "Lv1At", label: "LV 1 AT", col: "LV 1 AT" },
-      { id: "Ciar", label: "CIAR", col: "CIAR" },
-      { id: "Lles", label: "LLES", col: "LLES" }
-    ];
-
-   // Count "TRAINED", "COMPLETED", "YES", or anything with "Active"
-// (but not "Inactive") as a positive value.
-function isTrainedValue(value) {
-  if (value == null) return false;
-
-  const v = String(value).trim().toLowerCase();
-  if (!v) return false;
-
-  // Explicit negatives first
-  if (
-    v.includes("inactive") ||   // catches "Inactive", "INACTIVE", etc.
-    v.includes("deactivated") ||
-    v.includes("disabled") ||
-    v === "no" ||
-    v === "none" ||
-    v === "n/a" ||
-    v === "na" ||
-    v === "0"
-  ) {
-    return false;
-  }
-
-  // Exact “good” values
-  const positives = ["trained", "completed", "yes", "active"];
-  if (positives.includes(v)) return true;
-
-  // Any other string that contains "active" (e.g. "active user")
-  if (v.includes("active")) return true;
-
-  return false;
-}
-// Accounts: treat "Active" as positive, everything else negative
-function hasActiveAccount(value) {
-  if (value == null) return false;
-  const v = String(value).trim().toLowerCase();
-  if (!v) return false;
-
-  // Explicit negative markers
-  if (
-    v.includes("inactive") ||
-    v.includes("deactivated") ||
-    v.includes("disabled") ||
-    v === "no" ||
-    v === "none" ||
-    v === "n/a" ||
-    v === "na" ||
-    v === "0"
-  ) {
-    return false;
-  }
-
-  // Anything that actually says "active" (but not "inactive") is positive
-  return v.includes("active");
-}
-    const el = {
-      fileName: document.getElementById("fileNameLabel"),
-      kpiTotal: document.getElementById("kpiTotal"),
-      kpiAvailable: document.getElementById("kpiAvailable"),
-      kpiAvailablePct: document.getElementById("kpiAvailablePct"),
-      kpiLeave: document.getElementById("kpiLeave"),
-      kpiTad: document.getElementById("kpiTad"),
-      kpiMed: document.getElementById("kpiMed"),
-      kpiOpsTotal: document.getElementById("kpiOpsTotal"),
-      kpiOpsCurrent: document.getElementById("kpiOpsCurrent"),
-      kpiOpsFuture: document.getElementById("kpiOpsFuture"),
-      kpiMissionReady: document.getElementById("kpiMissionReady"),
-      kpiMissionPct: document.getElementById("kpiMissionPct"),
-      kpiDrvPctValue: document.getElementById("kpiDrvPctValue"),
-      kpiDrvCount: document.getElementById("kpiDrvCount"),
-      kpiTcccPctValue: document.getElementById("kpiTcccPctValue"),
-      kpiTcccCount: document.getElementById("kpiTcccCount"),
-      kpiLdrPctValue: document.getElementById("kpiLdrPctValue"),
-      kpiLdrCount: document.getElementById("kpiLdrCount"),
-      mosTable: document.getElementById("mosTable"),
-      mosBody: document.querySelector("#mosTable tbody"),
-      mosEmpty: document.getElementById("mosEmpty"),
-      unitTable: document.getElementById("unitTable"),
-      unitBody: document.querySelector("#unitTable tbody"),
-      unitEmpty: document.getElementById("unitEmpty"),
-      unitDetailWrapper: document.getElementById("unitDetailWrapper"),
-      unitDetailBody: document.querySelector("#unitDetailTable tbody"),
-      unitBreakTitle: document.getElementById("unitBreakTitle"),
-      fullTable: document.getElementById("fullBoardTable"),
-      fullHeaderRow: document.getElementById("fullBoardHeaderRow"),
-      fullBody: document.querySelector("#fullBoardTable tbody"),
-      fullEmpty: document.getElementById("fullBoardEmpty"),
-      teamTable: document.getElementById("teamTable"),
-      teamBody: document.querySelector("#teamTable tbody"),
-      teamEmpty: document.getElementById("teamEmpty"),
-      teamDetailWrapper: document.getElementById("teamDetailWrapper"),
-      teamDetailBody: document.querySelector("#teamDetailTable tbody"),
-      teamBreakTitle: document.getElementById("teamBreakTitle"),
-      modalBackdrop: document.getElementById("detailModalBackdrop"),
-      detailTitle: document.getElementById("detailTitle"),
-      detailSubtitle: document.getElementById("detailSubtitle"),
-      detailBody: document.getElementById("detailBody"),
-      detailCount: document.getElementById("detailCountBadge"),
-      btnPrev: document.getElementById("btnPrevPage"),
-      btnNext: document.getElementById("btnNextPage"),
-      pageInfo: document.getElementById("pageInfo")
-    };
-
-    // --- CSV parsing with header normalization ---
-    function normalizeHeaderName(h) {
-      h = h.trim();
-      if (h.startsWith('"') && h.endsWith('"') && h.length >= 2) {
-        h = h.slice(1, -1);
-      }
-      h = h.replace(/\s+/g, " ");
-      return h;
-    }
-
-    function splitCsvLine(line) {
-      const result = [];
-      let current = "";
-      let inQuotes = false;
-      for (let i = 0; i < line.length; i++) {
-        const ch = line[i];
-        if (ch === '"') {
-          if (inQuotes && line[i + 1] === '"') {
-            current += '"';
-            i++;
-          } else {
-            inQuotes = !inQuotes;
-          }
-        } else if (ch === "," && !inQuotes) {
-          result.push(current);
-          current = "";
-        } else {
-          current += ch;
-        }
-      }
-      result.push(current);
-      return result;
-    }
-
-    function parseCSV(text) {
-      text = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
-      if (text.charCodeAt(0) === 0xFEFF) {
-        text = text.slice(1);
-      }
-      const lines = text.split("\n").filter(line => line.trim().length > 0);
-      if (!lines.length) return [];
-
-      const headerCells = splitCsvLine(lines[0]);
-      const headers = headerCells.map(normalizeHeaderName);
-
-      const rows = [];
-      for (let i = 1; i < lines.length; i++) {
-        const line = lines[i];
-        if (!line.trim()) continue;
-        const cells = splitCsvLine(line);
-        if (cells.length === 1 && !cells[0].trim()) continue;
-
-        const obj = {};
-        headers.forEach((h, idx) => {
-          let v = cells[idx] ?? "";
-          v = v.trim();
-          if (v.startsWith('"') && v.endsWith('"') && v.length >= 2) {
-            v = v.slice(1, -1);
-          }
-          obj[h] = v;
-        });
-        rows.push(obj);
-      }
-      return rows;
-    }
-    // --- end CSV parser ---
-
-    function normalizeRow(row) {
-      const rank = row["Rank"] || "";
-      const lastName = row["Last Name"] || "";
-      const firstName = row["First Name"] || "";
-      const unit = row["UNIT"] || "";
-      const mos = row["MOS"] || "";
-      const statusRaw = row["Status"] || "";
-      const statusStart = row["Status Start"] || "";
-      const statusEnd = row["Status End Date"] || "";
-      const edipi = row["EDIPI"] || "";
-      const email = row["Email"] || "";
-      const section = row["Section"] || "";
-      const squad = row["Squad"] || "";
-      const team = row["Team"] || "";
-
-      const currentOp = row["Current Operation"] || "";
-      const currentOpStart = row["Current Operation : Start Time"] || "";
-      const currentOpEnd = row["Current Operation : End Time"] || "";
-
-      const futureOp = row["Future Operation"] || "";
-      const futureOpStart = row["Future Operation: Start Time"] || "";
-      const futureOpEnd = row["Future Operation: End Time"] || "";
-
-      const statusLower = statusRaw.toLowerCase();
-      const isLeave = statusLower.includes("leave");
-      const isTad = statusLower.includes("tad");
-      const isMedical =
-        statusLower.includes("medical") ||
-        statusLower.includes("light") ||
-        statusLower.includes("limited");
-      const isCommittedCurrent = !!(currentOp || "").trim();
-      const isCommittedFuture = !!(futureOp || "").trim();
-      const isAvailable =
-        statusLower.includes("present") ||
-        statusLower.includes("on hand") ||
-        statusLower.includes("on-hand");
-
-      return {
-        rank, lastName, firstName, edipi, email,
-        unit, mos, statusRaw, statusStart, statusEnd,
-        section, squad, team,
-        currentOp, currentOpStart, currentOpEnd,
-        futureOp, futureOpStart, futureOpEnd,
-        full: { ...row },
-        flags: {
-          isLeave,
-          isTad,
-          isMedical,
-          isCommittedCurrent,
-          isCommittedFuture,
-          isAvailable
-        }
-      };
-    }
-
-    function groupBy(list, keyFn) {
-      const m = new Map();
-      for (const item of list) {
-        const k = keyFn(item);
-        if (!m.has(k)) m.set(k, []);
-        m.get(k).push(item);
-      }
-      return m;
-    }
-
-    function updateSummary() {
-      const total = personnel.length;
-      const leave = personnel.filter(p => p.flags.isLeave).length;
-      const tad = personnel.filter(p => p.flags.isTad).length;
-      const med = personnel.filter(p => p.flags.isMedical).length;
-      const currentOps = personnel.filter(p => p.flags.isCommittedCurrent).length;
-      const futureOps = personnel.filter(p => p.flags.isCommittedFuture).length;
-      const committedOps = currentOps + futureOps;
-      const available = personnel.filter(p => p.flags.isAvailable).length;
-
-      const missionReady = personnel.filter(p =>
-        p.flags.isAvailable &&
-        !p.flags.isMedical &&
-        !p.flags.isCommittedCurrent &&
-        !p.flags.isCommittedFuture
-      ).length;
-
-      el.kpiTotal.textContent = total;
-      el.kpiLeave.textContent = leave;
-      el.kpiTad.textContent = tad;
-      el.kpiMed.textContent = med;
-      el.kpiOpsCurrent.textContent = currentOps;
-      el.kpiOpsFuture.textContent = futureOps;
-      el.kpiOpsTotal.textContent = committedOps;
-      el.kpiAvailable.textContent = available;
-      el.kpiMissionReady.textContent = missionReady;
-
-      const pctAvail = total ? Math.round((available / total) * 100) : 0;
-      const pctMission = total ? Math.round((missionReady / total) * 100) : 0;
-      el.kpiAvailablePct.textContent = pctAvail + "%";
-      el.kpiMissionPct.textContent = pctMission + "%";
-
-      updateTrainingKPIs();
-    }
-
-    function updateTrainingKPIs() {
-      const total = personnel.length;
-
-      if (!total) {
-        el.kpiDrvPctValue.textContent = "0%";
-        el.kpiDrvCount.textContent = "0 Marines";
-        el.kpiTcccPctValue.textContent = "0%";
-        el.kpiTcccCount.textContent = "0 Marines";
-        el.kpiLdrPctValue.textContent = "0%";
-        el.kpiLdrCount.textContent = "0 Marines";
-
-        trainingFields.forEach(tf => {
-          const pctEl   = document.getElementById(`kpi${tf.id}PctValue`);
-          const countEl = document.getElementById(`kpi${tf.id}Count`);
-          if (pctEl) {
-            pctEl.textContent = "0%";
-            applyKpiColor(pctEl, 0);
-          }
-          if (countEl) {
-            countEl.textContent = "0 Marines";
-          }
-        });
-        return;
-      }
-
-      // DRIVERS: HUMVEE / JLTV licensed
-      const drvList = personnel.filter(p =>
-        isTrainedValue(p.full["HUMVEE LICENSE"]) ||
-        isTrainedValue(p.full["JLTV LICENSE"])
-      );
-
-      // TCCC: any tier
-      const tcccList = personnel.filter(p =>
-        isTrainedValue(p.full["TCCC TIER 1"]) ||
-        isTrainedValue(p.full["TCCC TIER 2"]) ||
-        isTrainedValue(p.full["TCCC TIER 3"]) ||
-        isTrainedValue(p.full["TCCC TIER 4"])
-      );
-
-      // Leadership courses
-      const ldrList = personnel.filter(p =>
-        isTrainedValue(p.full["CORPORALS COURSE"]) ||
-        isTrainedValue(p.full["SERGEANT SCHOOL"])
-      );
-
-      const drvPct  = Math.round((drvList.length  / total) * 100);
-      const tcccPct = Math.round((tcccList.length / total) * 100);
-      const ldrPct  = Math.round((ldrList.length  / total) * 100);
-
-      el.kpiDrvPctValue.textContent = drvPct + "%";
-      applyKpiColor(el.kpiDrvPctValue, drvPct);
-      el.kpiDrvCount.textContent = `${drvList.length} Marines`;
-
-      el.kpiTcccPctValue.textContent = tcccPct + "%";
-      applyKpiColor(el.kpiTcccPctValue, tcccPct);
-      el.kpiTcccCount.textContent = `${tcccList.length} Marines`;
-
-      el.kpiLdrPctValue.textContent = ldrPct + "%";
-      applyKpiColor(el.kpiLdrPctValue, ldrPct);
-      el.kpiLdrCount.textContent = `${ldrList.length} Marines`;
-
-      // other training boards
-      trainingFields.forEach(tf => {
-        const positives = personnel.filter(p => isTrainedValue(p.full[tf.col]));
-        const pct = Math.round((positives.length / total) * 100);
-
-        const pctEl   = document.getElementById(`kpi${tf.id}PctValue`);
-        const countEl = document.getElementById(`kpi${tf.id}Count`);
-
-        if (pctEl) {
-          pctEl.textContent = pct + "%";
-          applyKpiColor(pctEl, pct);
-        }
-
-        if (countEl) {
-          countEl.textContent = `${positives.length} Marines`;
-        }
-      });
-    }
-
-    function createNumberCell(value, clickable, payload) {
-      const td = document.createElement("td");
-      td.classList.add("numeric");
-      if (!clickable) {
-        td.textContent = value;
-        return td;
-      }
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "clickable-number";
-      btn.textContent = value;
-      Object.entries(payload).forEach(([k, v]) => btn.dataset[k] = String(v));
-      btn.addEventListener("click", () => handleNumberClick(btn));
-      td.appendChild(btn);
-      return td;
-    }
-
-    function renderMos() {
-      el.mosBody.innerHTML = "";
-
-      if (!personnel.length) {
-        el.mosTable.classList.add("hidden");
-        el.mosEmpty.classList.remove("hidden");
-        return;
-      }
-      const groups = groupBy(personnel, p => p.mos || "UNK");
-      const keys = Array.from(groups.keys()).sort((a, b) => {
-        const na = parseInt(a, 10), nb = parseInt(b, 10);
-        if (!isNaN(na) && !isNaN(nb)) return na - nb;
-        return String(a).localeCompare(String(b));
-      });
-
-      for (const mos of keys) {
-        const list = groups.get(mos);
-        const total = list.length;
-        const available = list.filter(p => p.flags.isAvailable).length;
-        const leave = list.filter(p => p.flags.isLeave).length;
-        const tad = list.filter(p => p.flags.isTad).length;
-        const med = list.filter(p => p.flags.isMedical).length;
-        const currentOps = list.filter(p => p.flags.isCommittedCurrent).length;
-        const futureOps = list.filter(p => p.flags.isCommittedFuture).length;
-
-        const tr = document.createElement("tr");
-        const tdMos = document.createElement("td");
-        tdMos.textContent = mos;
-        tr.appendChild(tdMos);
-
-        tr.appendChild(createNumberCell(total, total > 0, { type: "mos", mos, key: "total" }));
-        tr.appendChild(createNumberCell(available, available > 0, { type: "mos", mos, key: "available" }));
-        tr.appendChild(createNumberCell(leave, leave > 0, { type: "mos", mos, key: "leave" }));
-        tr.appendChild(createNumberCell(tad, tad > 0, { type: "mos", mos, key: "tad" }));
-        tr.appendChild(createNumberCell(med, med > 0, { type: "mos", mos, key: "med" }));
-        tr.appendChild(createNumberCell(currentOps, currentOps > 0, { type: "mos", mos, key: "currentOps" }));
-        tr.appendChild(createNumberCell(futureOps, futureOps > 0, { type: "mos", mos, key: "futureOps" }));
-
-        el.mosBody.appendChild(tr);
-      }
-
-      el.mosTable.classList.remove("hidden");
-      el.mosEmpty.classList.add("hidden");
-    }
-
-    function renderUnitTable() {
-      el.unitBody.innerHTML = "";
-      el.unitDetailBody.innerHTML = "";
-      el.unitDetailWrapper.classList.add("hidden");
-
-      if (!personnel.length) {
-        el.unitTable.classList.add("hidden");
-        el.unitEmpty.classList.remove("hidden");
-        return;
-      }
-
-      const groups = groupBy(personnel, p => p.unit || "UNK");
-      const units = Array.from(groups.keys()).sort((a, b) => a.localeCompare(b));
-
-      for (const unit of units) {
-        const list = groups.get(unit);
-        const total = list.length;
-        const available = list.filter(p => p.flags.isAvailable).length;
-        const notAvail = total - available;
-        const ops = list.filter(p => p.flags.isCommittedCurrent || p.flags.isCommittedFuture).length;
-
-        const tr = document.createElement("tr");
-
-        const tdUnit = document.createElement("td");
-        tdUnit.classList.add("unit-cell");
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "unit-btn";
-        btn.textContent = unit;
-        btn.addEventListener("click", () => showUnitBreakdown(unit));
-        tdUnit.appendChild(btn);
-        tr.appendChild(tdUnit);
-
-        tr.appendChild(createNumberCell(total, total > 0, { type: "unitAgg", unit, key: "total" }));
-        tr.appendChild(createNumberCell(available, available > 0, { type: "unitAgg", unit, key: "available" }));
-        tr.appendChild(createNumberCell(notAvail, notAvail > 0, { type: "unitAgg", unit, key: "notAvailable" }));
-        tr.appendChild(createNumberCell(ops, ops > 0, { type: "unitAgg", unit, key: "ops" }));
-
-        el.unitBody.appendChild(tr);
-      }
-
-      el.unitTable.classList.remove("hidden");
-      el.unitEmpty.classList.add("hidden");
-    }
-
-    function showUnitBreakdown(unit) {
-      const list = personnel.filter(p => (p.unit || "UNK") === unit);
-      el.unitDetailBody.innerHTML = "";
-      if (!list.length) {
-        el.unitDetailWrapper.classList.add("hidden");
-        return;
-      }
-      el.unitBreakTitle.textContent = `Unit: ${unit}`;
-      el.unitDetailWrapper.classList.remove("hidden");
-
-      const groups = groupBy(list, p =>
-        [p.section || "UNK", p.squad || "UNK", p.team || "UNK"].join("||")
-      );
-      const keys = Array.from(groups.keys()).sort((a, b) => a.localeCompare(b));
-
-      for (const key of keys) {
-        const [section, squad, team] = key.split("||");
-        const seg = groups.get(key);
-        const total = seg.length;
-        const available = seg.filter(p => p.flags.isAvailable).length;
-        const notAvail = total - available;
-        const ops = seg.filter(p => p.flags.isCommittedCurrent || p.flags.isCommittedFuture).length;
-
-        const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${section}</td><td>${squad}</td><td>${team}</td>`;
-        const basePayload = { type: "unitElem", unit, section, squad, team };
-        tr.appendChild(createNumberCell(total, total > 0, { ...basePayload, key: "total" }));
-        tr.appendChild(createNumberCell(available, available > 0, { ...basePayload, key: "available" }));
-        tr.appendChild(createNumberCell(notAvail, notAvail > 0, { ...basePayload, key: "notAvailable" }));
-        tr.appendChild(createNumberCell(ops, ops > 0, { ...basePayload, key: "ops" }));
-        el.unitDetailBody.appendChild(tr);
-      }
-    }
-
-    function renderFullMatrix() {
-      el.fullBody.innerHTML = "";
-      el.fullHeaderRow.innerHTML = "";
-      if (!personnel.length) {
-        el.fullTable.classList.add("hidden");
-        el.fullEmpty.classList.remove("hidden");
-        return;
-      }
-
-      fullColumns.forEach(col => {
-        const th = document.createElement("th");
-        th.textContent = col;
-        el.fullHeaderRow.appendChild(th);
-      });
-
-      const groups = groupBy(personnel, p => p.unit || "UNK");
-      const units = Array.from(groups.keys()).sort((a, b) => a.localeCompare(b));
-
-      for (const unit of units) {
-        const unitList = groups.get(unit).slice().sort((a, b) => {
-          const ln = a.lastName.localeCompare(b.lastName);
-          if (ln !== 0) return ln;
-          return a.firstName.localeCompare(b.firstName);
-        });
-
-        const unitRow = document.createElement("tr");
-        unitRow.className = "matrix-unit-row";
-        unitRow.dataset.unit = unit;
-
-        const tdUnit = document.createElement("td");
-        tdUnit.colSpan = fullColumns.length;
-        const arrowSpan = document.createElement("span");
-        arrowSpan.className = "matrix-unit-toggle";
-        arrowSpan.dataset.arrowFor = unit;
-        arrowSpan.textContent = "▶";
-        tdUnit.appendChild(arrowSpan);
-        const labelSpan = document.createElement("span");
-        labelSpan.textContent = ` ${unit}  (${unitList.length} Marines)`;
-        tdUnit.appendChild(labelSpan);
-        unitRow.appendChild(tdUnit);
-
-        unitRow.addEventListener("click", () => toggleUnitGroup(unit));
-
-        el.fullBody.appendChild(unitRow);
-
-        for (const p of unitList) {
-          const tr = document.createElement("tr");
-          tr.className = "unit-member-row hidden";
-          tr.dataset.unit = unit;
-
-          for (const col of fullColumns) {
-            const td = document.createElement("td");
-            let val = "";
-
-            if (p.full && Object.prototype.hasOwnProperty.call(p.full, col)) {
-              val = p.full[col] || "";
-            }
-
-            if (!val) {
-              switch (col) {
-                case "UNIT": val = p.unit; break;
-                case "Rank": val = p.rank; break;
-                case "Last Name": val = p.lastName; break;
-                case "First Name": val = p.firstName; break;
-                case "EDIPI": val = p.edipi; break;
-                case "Email": val = p.email; break;
-                case "MOS": val = p.mos; break;
-                case "Status": val = p.statusRaw; break;
-                case "Status Start": val = p.statusStart; break;
-                case "Status End Date": val = p.statusEnd; break;
-                case "Section": val = p.section; break;
-                case "Squad": val = p.squad; break;
-                case "Team": val = p.team; break;
-                case "Current Operation": val = p.currentOp; break;
-                case "Current Operation : Start Time": val = p.currentOpStart; break;
-                case "Current Operation : End Time": val = p.currentOpEnd; break;
-                case "Future Operation": val = p.futureOp; break;
-                case "Future Operation: Start Time": val = p.futureOpStart; break;
-                case "Future Operation: End Time": val = p.futureOpEnd; break;
-              }
-            }
-
-            td.textContent = val;
-            tr.appendChild(td);
-          }
-          el.fullBody.appendChild(tr);
-        }
-      }
-
-      el.fullTable.classList.remove("hidden");
-      el.fullEmpty.classList.add("hidden");
-    }
-
-    function toggleUnitGroup(unit) {
-      const rows = el.fullBody.querySelectorAll(`tr.unit-member-row[data-unit="\${unit}"]`);
-      const arrow = el.fullBody.querySelector(`span.matrix-unit-toggle[data-arrow-for="\${unit}"]`);
-      let anyVisible = false;
-      rows.forEach(r => {
-        if (!r.classList.contains("hidden")) anyVisible = true;
-      });
-      const shouldHide = anyVisible;
-      rows.forEach(r => {
-        if (shouldHide) {
-          r.classList.add("hidden");
-        } else {
-          r.classList.remove("hidden");
-        }
-      });
-      if (arrow) arrow.textContent = shouldHide ? "▶" : "▼";
-    }
-
-    function renderTeamBoard() {
-      el.teamBody.innerHTML = "";
-      el.teamDetailBody.innerHTML = "";
-      el.teamDetailWrapper.classList.add("hidden");
-
-      if (!personnel.length) {
-        el.teamTable.classList.add("hidden");
-        el.teamEmpty.classList.remove("hidden");
-        return;
-      }
-
-      const squadGroups = groupBy(
-        personnel,
-        p => [p.unit || "UNK", p.section || "UNK", p.squad || "UNK"].join("||")
-      );
-      const squadKeys = Array.from(squadGroups.keys()).sort((a, b) => a.localeCompare(b));
-
-      for (const key of squadKeys) {
-        const [unit, section, squad] = key.split("||");
-        const list = squadGroups.get(key);
-        const total = list.length;
-        const available = list.filter(p => p.flags.isAvailable).length;
-        const notAvail = total - available;
-        const ops = list.filter(p => p.flags.isCommittedCurrent || p.flags.isCommittedFuture).length;
-
-        const hasDriver = list.some(p =>
-          isTrainedValue(p.full["HUMVEE LICENSE"]) ||
-          isTrainedValue(p.full["JLTV LICENSE"])
-        );
-        const hasTccc = list.some(p =>
-          isTrainedValue(p.full["TCCC TIER 1"]) ||
-          isTrainedValue(p.full["TCCC TIER 2"]) ||
-          isTrainedValue(p.full["TCCC TIER 3"]) ||
-          isTrainedValue(p.full["TCCC TIER 4"])
-        );
-        const hasLeader = list.some(p =>
-          isTrainedValue(p.full["CORPORALS COURSE"]) ||
-          isTrainedValue(p.full["SERGEANT SCHOOL"])
-        );
-
-        const hasMcenSUser  = list.some(p => isTrainedValue(p.full["MCEN-S USER"]));
-        const hasMcenNUser  = list.some(p => isTrainedValue(p.full["MCEN-N USER"]));
-        const hasMcenNAdmin = list.some(p => isTrainedValue(p.full["MCEN-N ADMIN"]));
-        const hasMcenSAdmin = list.some(p => isTrainedValue(p.full["MCEN-S ADMIN"]));
-
-        const hasTieNUser = list.some(p => isTrainedValue(p.full["TIE-N USER"]));
-        const hasTieNUa   = list.some(p => isTrainedValue(p.full["TIE-N UA"]));
-        const hasTieNSa   = list.some(p => isTrainedValue(p.full["TIE-N SA"]));
-        const hasTieSUser = list.some(p => isTrainedValue(p.full["TIE-S USER"]));
-        const hasTieSUa   = list.some(p => isTrainedValue(p.full["TIE-S UA"]));
-        const hasTieSSa   = list.some(p => isTrainedValue(p.full["TIE-S SA"]));
-        const hasTieNsUser = list.some(p => isTrainedValue(p.full["TIE-NS USER"]));
-        const hasTieNsUa   = list.some(p => isTrainedValue(p.full["TIE-NS UA"]));
-        const hasTieNsSa   = list.some(p => isTrainedValue(p.full["TIE-NS SA"]));
-        const hasTieNNa    = list.some(p => isTrainedValue(p.full["TIE-N NA"]));
-        const hasTieSNa    = list.some(p => isTrainedValue(p.full["TIE-S NA"]));
-        const hasTieNaNa   = list.some(p => isTrainedValue(p.full["TIE-NA NA"]));
-
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${unit}</td>
-          <td>${section}</td>
-          <td></td>
-        `;
-        const squadTd = tr.children[2];
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "squad-btn";
-        btn.textContent = squad;
-        btn.addEventListener("click", () => showSquadTeams(unit, section, squad));
-        squadTd.appendChild(btn);
-
-        const payloadBase = { type: "squadAgg", unit, section, squad };
-        tr.appendChild(createNumberCell(total, total > 0, { ...payloadBase, key: "total" }));
-        tr.appendChild(createNumberCell(available, available > 0, { ...payloadBase, key: "available" }));
-        tr.appendChild(createNumberCell(notAvail, notAvail > 0, { ...payloadBase, key: "notAvailable" }));
-        tr.appendChild(createNumberCell(ops, ops > 0, { ...payloadBase, key: "ops" }));
-
-        const drvTd = document.createElement("td");
-        drvTd.innerHTML = `<span class="cap-chip ${hasDriver ? "on" : "off"}">DRV</span>`;
-        const tcccTd = document.createElement("td");
-        tcccTd.innerHTML = `<span class="cap-chip ${hasTccc ? "on" : "off"}">TCCC</span>`;
-        const ldrTd = document.createElement("td");
-        ldrTd.innerHTML = `<span class="cap-chip ${hasLeader ? "on" : "off"}">LDR</span>`;
-
-        const msuTd = document.createElement("td");
-        msuTd.innerHTML = `<span class="cap-chip ${hasMcenSUser ? "on" : "off"}">MS-U</span>`;
-        const mnuTd = document.createElement("td");
-        mnuTd.innerHTML = `<span class="cap-chip ${hasMcenNUser ? "on" : "off"}">MN-U</span>`;
-        const mnaTd = document.createElement("td");
-        mnaTd.innerHTML = `<span class="cap-chip ${hasMcenNAdmin ? "on" : "off"}">MN-A</span>`;
-        const msaTd = document.createElement("td");
-        msaTd.innerHTML = `<span class="cap-chip ${hasMcenSAdmin ? "on" : "off"}">MS-A</span>`;
-
-        const tnuTd = document.createElement("td");
-        tnuTd.innerHTML = `<span class="cap-chip ${hasTieNUser ? "on" : "off"}">TN-U</span>`;
-        const tnuUaTd = document.createElement("td");
-        tnuUaTd.innerHTML = `<span class="cap-chip ${hasTieNUa ? "on" : "off"}">TN-UA</span>`;
-        const tnuSaTd = document.createElement("td");
-        tnuSaTd.innerHTML = `<span class="cap-chip ${hasTieNSa ? "on" : "off"}">TN-SA</span>`;
-        const tsuTd = document.createElement("td");
-        tsuTd.innerHTML = `<span class="cap-chip ${hasTieSUser ? "on" : "off"}">TS-U</span>`;
-        const tsuUaTd = document.createElement("td");
-        tsuUaTd.innerHTML = `<span class="cap-chip ${hasTieSUa ? "on" : "off"}">TS-UA</span>`;
-        const tsuSaTd = document.createElement("td");
-        tsuSaTd.innerHTML = `<span class="cap-chip ${hasTieSSa ? "on" : "off"}">TS-SA</span>`;
-
-        const tnsuTd = document.createElement("td");
-        tnsuTd.innerHTML = `<span class="cap-chip ${hasTieNsUser ? "on" : "off"}">TNS-U</span>`;
-        const tnsUaTd = document.createElement("td");
-        tnsUaTd.innerHTML = `<span class="cap-chip ${hasTieNsUa ? "on" : "off"}">TNS-UA</span>`;
-        const tnsSaTd = document.createElement("td");
-        tnsSaTd.innerHTML = `<span class="cap-chip ${hasTieNsSa ? "on" : "off"}">TNS-SA</span>`;
-        const tnNaTd = document.createElement("td");
-        tnNaTd.innerHTML = `<span class="cap-chip ${hasTieNNa ? "on" : "off"}">TN-NA</span>`;
-        const tsNaTd = document.createElement("td");
-        tsNaTd.innerHTML = `<span class="cap-chip ${hasTieSNa ? "on" : "off"}">TS-NA</span>`;
-        const tnaNaTd = document.createElement("td");
-        tnaNaTd.innerHTML = `<span class="cap-chip ${hasTieNaNa ? "on" : "off"}">TNA-NA</span>`;
-
-        tr.appendChild(drvTd);
-        tr.appendChild(tcccTd);
-        tr.appendChild(ldrTd);
-        tr.appendChild(msuTd);
-        tr.appendChild(mnuTd);
-        tr.appendChild(mnaTd);
-        tr.appendChild(msaTd);
-        tr.appendChild(tnuTd);
-        tr.appendChild(tnuUaTd);
-        tr.appendChild(tnuSaTd);
-        tr.appendChild(tsuTd);
-        tr.appendChild(tsuUaTd);
-        tr.appendChild(tsuSaTd);
-        tr.appendChild(tnsuTd);
-        tr.appendChild(tnsUaTd);
-        tr.appendChild(tnsSaTd);
-        tr.appendChild(tnNaTd);
-        tr.appendChild(tsNaTd);
-        tr.appendChild(tnaNaTd);
-
-        el.teamBody.appendChild(tr);
-      }
-
-      el.teamTable.classList.remove("hidden");
-      el.teamEmpty.classList.add("hidden");
-    }
-
-    function showSquadTeams(unit, section, squad) {
-      const list = personnel.filter(p =>
-        (p.unit || "UNK") === unit &&
-        (p.section || "UNK") === section &&
-        (p.squad || "UNK") === squad
-      );
-      el.teamDetailBody.innerHTML = "";
-      if (!list.length) {
-        el.teamDetailWrapper.classList.add("hidden");
-        return;
-      }
-      el.teamBreakTitle.textContent = `Squad: ${unit} / ${section} / ${squad}`;
-      el.teamDetailWrapper.classList.remove("hidden");
-
-      const groups = groupBy(
-        list,
-        p => p.team || "UNK"
-      );
-      const keys = Array.from(groups.keys()).sort((a, b) => a.localeCompare(b));
-
-      for (const team of keys) {
-        const seg = groups.get(team);
-        const total = seg.length;
-        const available = seg.filter(p => p.flags.isAvailable).length;
-        const notAvail = total - available;
-        const ops = seg.filter(p => p.flags.isCommittedCurrent || p.flags.isCommittedFuture).length;
-
-        const hasDriver = seg.some(p =>
-          isTrainedValue(p.full["HUMVEE LICENSE"]) ||
-          isTrainedValue(p.full["JLTV LICENSE"])
-        );
-        const hasTccc = seg.some(p =>
-          isTrainedValue(p.full["TCCC TIER 1"]) ||
-          isTrainedValue(p.full["TCCC TIER 2"]) ||
-          isTrainedValue(p.full["TCCC TIER 3"]) ||
-          isTrainedValue(p.full["TCCC TIER 4"])
-        );
-        const hasLeader = seg.some(p =>
-          isTrainedValue(p.full["CORPORALS COURSE"]) ||
-          isTrainedValue(p.full["SERGEANT SCHOOL"])
-        );
-
-        const hasMcenSUser  = seg.some(p => isTrainedValue(p.full["MCEN-S USER"]));
-        const hasMcenNUser  = seg.some(p => isTrainedValue(p.full["MCEN-N USER"]));
-        const hasMcenNAdmin = seg.some(p => isTrainedValue(p.full["MCEN-N ADMIN"]));
-        const hasMcenSAdmin = seg.some(p => isTrainedValue(p.full["MCEN-S ADMIN"]));
-
-        const hasTieNUser = seg.some(p => isTrainedValue(p.full["TIE-N USER"]));
-        const hasTieNUa   = seg.some(p => isTrainedValue(p.full["TIE-N UA"]));
-        const hasTieNSa   = seg.some(p => isTrainedValue(p.full["TIE-NS SA"]));
-        const hasTieSUser = seg.some(p => isTrainedValue(p.full["TIE-S USER"]));
-        const hasTieSUa   = seg.some(p => isTrainedValue(p.full["TIE-S UA"]));
-        const hasTieSSa   = seg.some(p => isTrainedValue(p.full["TIE-S SA"]));
-        const hasTieNsUser = seg.some(p => isTrainedValue(p.full["TIE-NS USER"]));
-        const hasTieNsUa   = seg.some(p => isTrainedValue(p.full["TIE-NS UA"]));
-        const hasTieNsSa   = seg.some(p => isTrainedValue(p.full["TIE-NS SA"]));
-        const hasTieNNa    = seg.some(p => isTrainedValue(p.full["TIE-N NA"]));
-        const hasTieSNa    = seg.some(p => isTrainedValue(p.full["TIE-S NA"]));
-        const hasTieNaNa   = seg.some(p => isTrainedValue(p.full["TIE-NA NA"]));
-
-        const tr = document.createElement("tr");
-        const payloadBase = { type: "unitElem", unit, section, squad, team };
-
-        tr.innerHTML = `<td>${team}</td>`;
-        tr.appendChild(createNumberCell(total, total > 0, { ...payloadBase, key: "total" }));
-        tr.appendChild(createNumberCell(available, available > 0, { ...payloadBase, key: "available" }));
-        tr.appendChild(createNumberCell(notAvail, notAvail > 0, { ...payloadBase, key: "notAvailable" }));
-        tr.appendChild(createNumberCell(ops, ops > 0, { ...payloadBase, key: "ops" }));
-
-        const drvTd = document.createElement("td");
-        drvTd.innerHTML = `<span class="cap-chip ${hasDriver ? "on" : "off"}">DRV</span>`;
-        const tcccTd = document.createElement("td");
-        tcccTd.innerHTML = `<span class="cap-chip ${hasTccc ? "on" : "off"}">TCCC</span>`;
-        const ldrTd = document.createElement("td");
-        ldrTd.innerHTML = `<span class="cap-chip ${hasLeader ? "on" : "off"}">LDR</span>`;
-
-        const msuTd = document.createElement("td");
-        msuTd.innerHTML = `<span class="cap-chip ${hasMcenSUser ? "on" : "off"}">MS-U</span>`;
-        const mnuTd = document.createElement("td");
-        mnuTd.innerHTML = `<span class="cap-chip ${hasMcenNUser ? "on" : "off"}">MN-U</span>`;
-        const mnaTd = document.createElement("td");
-        mnaTd.innerHTML = `<span class="cap-chip ${hasMcenNAdmin ? "on" : "off"}">MN-A</span>`;
-        const msaTd = document.createElement("td");
-        msaTd.innerHTML = `<span class="cap-chip ${hasMcenSAdmin ? "on" : "off"}">MS-A</span>`;
-
-        const tnuTd = document.createElement("td");
-        tnuTd.innerHTML = `<span class="cap-chip ${hasTieNUser ? "on" : "off"}">TN-U</span>`;
-        const tnuUaTd = document.createElement("td");
-        tnuUaTd.innerHTML = `<span class="cap-chip ${hasTieNUa ? "on" : "off"}">TN-UA</span>`;
-        const tnuSaTd = document.createElement("td");
-        tnuSaTd.innerHTML = `<span class="cap-chip ${hasTieNSa ? "on" : "off"}">TN-SA</span>`;
-        const tsuTd = document.createElement("td");
-        tsuTd.innerHTML = `<span class="cap-chip ${hasTieSUser ? "on" : "off"}">TS-U</span>`;
-        const tsuUaTd = document.createElement("td");
-        tsuUaTd.innerHTML = `<span class="cap-chip ${hasTieSUa ? "on" : "off"}">TS-UA</span>`;
-        const tsuSaTd = document.createElement("td");
-        tsuSaTd.innerHTML = `<span class="cap-chip ${hasTieSSa ? "on" : "off"}">TS-SA</span>`;
-
-        const tnsuTd = document.createElement("td");
-        tnsuTd.innerHTML = `<span class="cap-chip ${hasTieNsUser ? "on" : "off"}">TNS-U</span>`;
-        const tnsUaTd = document.createElement("td");
-        tnsUaTd.innerHTML = `<span class="cap-chip ${hasTieNsUa ? "on" : "off"}">TNS-UA</span>`;
-        const tnsSaTd = document.createElement("td");
-        tnsSaTd.innerHTML = `<span class="cap-chip ${hasTieNsSa ? "on" : "off"}">TNS-SA</span>`;
-        const tnNaTd = document.createElement("td");
-        tnNaTd.innerHTML = `<span class="cap-chip ${hasTieNNa ? "on" : "off"}">TN-NA</span>`;
-        const tsNaTd = document.createElement("td");
-        tsNaTd.innerHTML = `<span class="cap-chip ${hasTieSNa ? "on" : "off"}">TS-NA</span>`;
-        const tnaNaTd = document.createElement("td");
-        tnaNaTd.innerHTML = `<span class="cap-chip ${hasTieNaNa ? "on" : "off"}">TNA-NA</span>`;
-
-        tr.appendChild(drvTd);
-        tr.appendChild(tcccTd);
-        tr.appendChild(ldrTd);
-        tr.appendChild(msuTd);
-        tr.appendChild(mnuTd);
-        tr.appendChild(mnaTd);
-        tr.appendChild(msaTd);
-        tr.appendChild(tnuTd);
-        tr.appendChild(tnuUaTd);
-        tr.appendChild(tnuSaTd);
-        tr.appendChild(tsuTd);
-        tr.appendChild(tsuUaTd);
-        tr.appendChild(tsuSaTd);
-        tr.appendChild(tnsuTd);
-        tr.appendChild(tnsUaTd);
-        tr.appendChild(tnsSaTd);
-        tr.appendChild(tnNaTd);
-        tr.appendChild(tsNaTd);
-        tr.appendChild(tnaNaTd);
-
-        el.teamDetailBody.appendChild(tr);
-      }
-    }
-
-    function handleNumberClick(btn) {
-      const ds = btn.dataset;
-      const type = ds.type;
-      let list = [];
-      let title = "";
-      let subtitle = "";
-
-      if (type === "mos") {
-        const mos = ds.mos;
-        list = personnel.filter(p => (p.mos || "UNK") === mos);
-        title = `MOS ${mos}`;
-        switch (ds.key) {
-          case "available":
-            list = list.filter(p => p.flags.isAvailable);
-            subtitle = "Available (Present for Duty / On Hand).";
-            break;
-          case "leave":
-            list = list.filter(p => p.flags.isLeave);
-            subtitle = "Status: Leave.";
-            break;
-          case "tad":
-            list = list.filter(p => p.flags.isTad);
-            subtitle = "Status: TAD.";
-            break;
-          case "med":
-            list = list.filter(p => p.flags.isMedical);
-            subtitle = "Medical / Light / Limited duty.";
-            break;
-          case "currentOps":
-            list = list.filter(p => p.flags.isCommittedCurrent);
-            subtitle = "Committed to current operations.";
-            break;
-          case "futureOps":
-            list = list.filter(p => p.flags.isCommittedFuture);
-            subtitle = "Committed to future operations.";
-            break;
-          default:
-            subtitle = "All Marines within MOS.";
-        }
-      } else if (type === "unitAgg") {
-        const unit = ds.unit;
-        list = personnel.filter(p => (p.unit || "UNK") === unit);
-        title = `Unit: ${unit}`;
-        switch (ds.key) {
-          case "available":
-            list = list.filter(p => p.flags.isAvailable);
-            subtitle = "Available Marines in this unit.";
-            break;
-          case "notAvailable":
-            list = list.filter(p => !p.flags.isAvailable);
-            subtitle = "Not available in this unit.";
-            break;
-          case "ops":
-            list = list.filter(p => p.flags.isCommittedCurrent || p.flags.isCommittedFuture);
-            subtitle = "Committed to operations in this unit.";
-            break;
-          default:
-            subtitle = "All Marines in this unit.";
-        }
-      } else if (type === "unitElem" || type === "squadAgg") {
-        const { unit, section, squad, team, key } = ds;
-        list = personnel.filter(p =>
-          (p.unit || "UNK") === unit &&
-          (section ? (p.section || "UNK") === section : true) &&
-          (squad ? (p.squad || "UNK") === squad : true) &&
-          (team ? (p.team || "UNK") === team : true)
-        );
-        title = `Element: ${unit}${section ? " / " + section : ""}${squad ? " / " + squad : ""}${team ? " / " + team : ""}`;
-        switch (key) {
-          case "available":
-            list = list.filter(p => p.flags.isAvailable);
-            subtitle = "Available in this element.";
-            break;
-          case "notAvailable":
-            list = list.filter(p => !p.flags.isAvailable);
-            subtitle = "Not available in this element.";
-            break;
-          case "ops":
-            list = list.filter(p => p.flags.isCommittedCurrent || p.flags.isCommittedFuture);
-            subtitle = "Committed to operations in this element.";
-            break;
-          default:
-            subtitle = "All Marines in this element.";
-        }
-      }
-
-      openDetailModal(title, subtitle, list);
-    }
-
-    function buildDetailTable(list) {
-      const table = document.createElement("table");
-      const thead = document.createElement("thead");
-      const tbody = document.createElement("tbody");
-
-      thead.innerHTML = `
-        <tr>
-          <th>Name</th>
-          <th>Rank</th>
-          <th>MOS</th>
-          <th>Unit / Sec / Sq / Team</th>
-          <th>Status</th>
-          <th>Current Op</th>
-          <th>Future Op</th>
-        </tr>
-      `;
-
-      list.forEach(p => {
-        const tr = document.createElement("tr");
-        const name = `${p.lastName}, ${p.firstName}`;
-        const chain = [
-          p.unit || "—",
-          p.section || "—",
-          p.squad || "—",
-          p.team || "—"
-        ].join(" / ");
-
-        tr.innerHTML = `
-          <td>${name}</td>
-          <td>${p.rank || ""}</td>
-          <td>${p.mos || ""}</td>
-          <td>${chain}</td>
-          <td>${p.statusRaw || ""}</td>
-          <td>${p.currentOp || ""}</td>
-          <td>${p.futureOp || ""}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-
-      table.appendChild(thead);
-      table.appendChild(tbody);
-      return table;
-    }
-
-    function openDetailModal(title, subtitle, list) {
-      detailList = list.slice();
-      detailCurrentPage = 1;
-      el.detailTitle.textContent = title || "Detail View";
-      el.detailSubtitle.textContent = subtitle || "";
-      el.detailCount.textContent = `${detailList.length} Marines`;
-      renderDetailPage();
-      el.modalBackdrop.classList.add("show");
-    }
-
-    function openDualDetailModal(title, positiveLabel, negativeLabel, positiveList, negativeList) {
-      el.detailTitle.textContent = title || "Detail View";
-      el.detailSubtitle.textContent =
-        `${positiveLabel}: ${positiveList.length} | ${negativeLabel}: ${negativeList.length}`;
-      el.detailCount.textContent = `${positiveList.length + negativeList.length} Marines`;
-
-      el.detailBody.innerHTML = "";
-
-      const makeSectionHeader = (label, count) => {
-        const div = document.createElement("div");
-        div.textContent = `${label} (${count})`;
-        div.style.fontFamily = "Rajdhani, system-ui";
-        div.style.textTransform = "uppercase";
-        div.style.letterSpacing = "0.16em";
-        div.style.fontSize = "0.7rem";
-        div.style.color = "var(--accent-amber)";
-        div.style.margin = "6px 0 4px";
-        return div;
-      };
-
-      // Positive list
-      el.detailBody.appendChild(makeSectionHeader(positiveLabel, positiveList.length));
-      if (positiveList.length) {
-        el.detailBody.appendChild(buildDetailTable(positiveList));
-      } else {
-        const empty = document.createElement("div");
-        empty.className = "empty-state";
-        empty.textContent = "No Marines in this group.";
-        el.detailBody.appendChild(empty);
-      }
-
-      // Negative list
-      el.detailBody.appendChild(makeSectionHeader(negativeLabel, negativeList.length));
-      if (negativeList.length) {
-        el.detailBody.appendChild(buildDetailTable(negativeList));
-      } else {
-        const empty = document.createElement("div");
-        empty.className = "empty-state";
-        empty.textContent = "No Marines in this group.";
-        el.detailBody.appendChild(empty);
-      }
-
-      // Dual view = no paging
-      el.pageInfo.textContent = "Page 1 / 1";
-      el.btnPrev.disabled = true;
-      el.btnNext.disabled = true;
-
-      el.modalBackdrop.classList.add("show");
-    }
-
-    function renderDetailPage() {
-      const total = detailList.length;
-      el.detailBody.innerHTML = "";
-
-      if (!total) {
-        el.detailBody.innerHTML =
-          '<div class="empty-state">No Marines match this filter.</div>';
-        el.pageInfo.textContent = "Page 0 / 0";
-        el.btnPrev.disabled = true;
-        el.btnNext.disabled = true;
-        return;
-      }
-
-      const totalPages = Math.ceil(total / detailPageSize);
-      if (detailCurrentPage < 1) detailCurrentPage = 1;
-      if (detailCurrentPage > totalPages) detailCurrentPage = totalPages;
-
-      const start = (detailCurrentPage - 1) * detailPageSize;
-      const end = Math.min(start + detailPageSize, total);
-      const pageItems = detailList.slice(start, end);
-
-      const table = buildDetailTable(pageItems);
-      el.detailBody.appendChild(table);
-
-      el.pageInfo.textContent = `Page ${detailCurrentPage} / ${totalPages}`;
-      el.btnPrev.disabled = detailCurrentPage <= 1;
-      el.btnNext.disabled = detailCurrentPage >= totalPages;
-    }
-
-    function closeDetailModal() {
-      el.modalBackdrop.classList.remove("show");
-    }
-
-    function wireKpiClicks() {
-      // CARD CLICKS (single positive list)
-      document.getElementById("cardTotal").addEventListener("click", () =>
-        openDetailModal("All Marines", "All Marines records loaded from the CSV.", personnel)
-      );
-      document.getElementById("cardAvailable").addEventListener("click", () =>
-        openDetailModal(
-          "Available Marines",
-          "Status Present for Duty / On Hand.",
-          personnel.filter(p => p.flags.isAvailable)
-        )
-      );
-      document.getElementById("cardLeave").addEventListener("click", () =>
-        openDetailModal(
-          "On Leave",
-          "Status indicates Leave.",
-          personnel.filter(p => p.flags.isLeave)
-        )
-      );
-      document.getElementById("cardTad").addEventListener("click", () =>
-        openDetailModal(
-          "TAD Marines",
-          "Status indicates TAD.",
-          personnel.filter(p => p.flags.isTad)
-        )
-      );
-      document.getElementById("cardMed").addEventListener("click", () =>
-        openDetailModal(
-          "Medical / Light / Limited Duty",
-          "Status indicates Medical / Light / Limited duty.",
-          personnel.filter(p => p.flags.isMedical)
-        )
-      );
-      document.getElementById("cardOps").addEventListener("click", () =>
-        openDetailModal(
-          "Committed to Operations",
-          "Marines committed to current and/or future operations.",
-          personnel.filter(p => p.flags.isCommittedCurrent || p.flags.isCommittedFuture)
-        )
-      );
-      document.getElementById("cardMission").addEventListener("click", () =>
-        openDetailModal(
-          "Mission Ready Marines",
-          "Available, not medical, and not committed to operations.",
-          personnel.filter(p =>
-            p.flags.isAvailable &&
-            !p.flags.isMedical &&
-            !p.flags.isCommittedCurrent &&
-            !p.flags.isCommittedFuture
-          )
-        )
-      );
-
-      document.getElementById("cardDrvTrain").addEventListener("click", () => {
-        const list = personnel.filter(p =>
-          isTrainedValue(p.full["HUMVEE LICENSE"]) ||
-          isTrainedValue(p.full["JLTV LICENSE"])
-        );
-        openDetailModal("Driver Qualified", "HUMVEE or JLTV license recorded.", list);
-      });
-
-      document.getElementById("cardTcccTrain").addEventListener("click", () => {
-        const list = personnel.filter(p =>
-          isTrainedValue(p.full["TCCC TIER 1"]) ||
-          isTrainedValue(p.full["TCCC TIER 2"]) ||
-          isTrainedValue(p.full["TCCC TIER 3"]) ||
-          isTrainedValue(p.full["TCCC TIER 4"])
-        );
-        openDetailModal("TCCC Qualified", "Any TCCC tier recorded.", list);
-      });
-
-      document.getElementById("cardLdrTrain").addEventListener("click", () => {
-        const list = personnel.filter(p =>
-          isTrainedValue(p.full["CORPORALS COURSE"]) ||
-          isTrainedValue(p.full["SERGEANT SCHOOL"])
-        );
-        openDetailModal("Leadership Courses", "Corporals Course or Sergeant School completed.", list);
-      });
-
-      trainingFields.forEach(tf => {
-        const card = document.getElementById(`card${tf.id}`);
-        if (!card) return;
-        card.addEventListener("click", () => {
-          const list = personnel.filter(p => isTrainedValue(p.full[tf.col]));
-          openDetailModal(tf.label, `${tf.label} recorded.`, list);
-        });
-      });
-
-      // KPI NUMBER BUTTONS for Current / Future Ops
-      el.kpiOpsCurrent.addEventListener("click", (e) => {
-        e.stopPropagation();
-        openDetailModal(
-          "Current Operations",
-          "Committed to current operations.",
-          personnel.filter(p => p.flags.isCommittedCurrent)
-        );
-      });
-      el.kpiOpsFuture.addEventListener("click", (e) => {
-        e.stopPropagation();
-        openDetailModal(
-          "Future Operations",
-          "Committed to future operations.",
-          personnel.filter(p => p.flags.isCommittedFuture)
-        );
-      });
-
-      // PERCENTAGE CLICKS (dual lists)
-      el.kpiAvailablePct.style.cursor = "pointer";
-      el.kpiAvailablePct.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const positives = personnel.filter(p => p.flags.isAvailable);
-        const negatives = personnel.filter(p => !p.flags.isAvailable);
-        openDualDetailModal(
-          "Available Status",
-          "Available",
-          "Not Available",
-          positives,
-          negatives
-        );
-      });
-
-      el.kpiMissionPct.style.cursor = "pointer";
-      el.kpiMissionPct.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const positives = personnel.filter(p =>
-          p.flags.isAvailable &&
-          !p.flags.isMedical &&
-          !p.flags.isCommittedCurrent &&
-          !p.flags.isCommittedFuture
-        );
-        const negatives = personnel.filter(p =>
-          !(
-            p.flags.isAvailable &&
-            !p.flags.isMedical &&
-            !p.flags.isCommittedCurrent &&
-            !p.flags.isCommittedFuture
-          )
-        );
-        openDualDetailModal(
-          "Mission Ready Status",
-          "Mission Ready",
-          "Not Mission Ready",
-          positives,
-          negatives
-        );
-      });
-
-      el.kpiDrvPctValue.style.cursor = "pointer";
-      el.kpiDrvPctValue.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const positives = personnel.filter(p =>
-          isTrainedValue(p.full["HUMVEE LICENSE"]) ||
-          isTrainedValue(p.full["JLTV LICENSE"])
-        );
-        const negatives = personnel.filter(p =>
-          !isTrainedValue(p.full["HUMVEE LICENSE"]) &&
-          !isTrainedValue(p.full["JLTV LICENSE"])
-        );
-        openDualDetailModal(
-          "Driver Qualification",
-          "Driver Qualified",
-          "Not Driver Qualified",
-          positives,
-          negatives
-        );
-      });
-
-      el.kpiTcccPctValue.style.cursor = "pointer";
-      el.kpiTcccPctValue.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const positives = personnel.filter(p =>
-          isTrainedValue(p.full["TCCC TIER 1"]) ||
-          isTrainedValue(p.full["TCCC TIER 2"]) ||
-          isTrainedValue(p.full["TCCC TIER 3"]) ||
-          isTrainedValue(p.full["TCCC TIER 4"])
-        );
-        const negatives = personnel.filter(p =>
-          !isTrainedValue(p.full["TCCC TIER 1"]) &&
-          !isTrainedValue(p.full["TCCC TIER 2"]) &&
-          !isTrainedValue(p.full["TCCC TIER 3"]) &&
-          !isTrainedValue(p.full["TCCC TIER 4"])
-        );
-        openDualDetailModal(
-          "TCCC Qualification",
-          "TCCC Qualified",
-          "Not TCCC Qualified",
-          positives,
-          negatives
-        );
-      });
-
-      el.kpiLdrPctValue.style.cursor = "pointer";
-      el.kpiLdrPctValue.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const positives = personnel.filter(p =>
-          isTrainedValue(p.full["CORPORALS COURSE"]) ||
-          isTrainedValue(p.full["SERGEANT SCHOOL"])
-        );
-        const negatives = personnel.filter(p =>
-          !isTrainedValue(p.full["CORPORALS COURSE"]) &&
-          !isTrainedValue(p.full["SERGEANT SCHOOL"])
-        );
-        openDualDetailModal(
-          "Leadership Courses",
-          "Leadership Trained",
-          "Not Leadership Trained",
-          positives,
-          negatives
-        );
-      });
-
-      // training field percentages
-      trainingFields.forEach(tf => {
-        const pctEl = document.getElementById(`kpi${tf.id}PctValue`);
-        if (!pctEl) return;
-        pctEl.style.cursor = "pointer";
-        pctEl.addEventListener("click", (e) => {
-          e.stopPropagation();
-          const positives = personnel.filter(p => isTrainedValue(p.full[tf.col]));
-          const negatives = personnel.filter(p => !isTrainedValue(p.full[tf.col]));
-          openDualDetailModal(
-            tf.label,
-            "Completed / Trained",
-            "Not Completed",
-            positives,
-            negatives
-          );
-        });
-      });
-    }
-
-    function initCollapsibles() {
-      document.querySelectorAll(".section-header").forEach(header => {
-        const body = header.nextElementSibling;
-        if (!body) return;
-        header.addEventListener("click", () => {
-          body.classList.toggle("collapsed-section");
-          header.classList.toggle("collapsed");
-        });
-      });
-    }
-
-    function collapseByDefault(headerId) {
-      const header = document.getElementById(headerId);
-      if (!header) return;
-      const body = header.nextElementSibling;
-      if (!body) return;
-      body.classList.add("collapsed-section");
-      header.classList.add("collapsed");
-    }
-
-    // Modal events
-    el.btnPrev.addEventListener("click", () => {
-      if (detailCurrentPage > 1) {
-        detailCurrentPage--;
-        renderDetailPage();
-      }
-    });
-
-    el.btnNext.addEventListener("click", () => {
-      const totalPages = Math.ceil(detailList.length / detailPageSize);
-      if (detailCurrentPage < totalPages) {
-        detailCurrentPage++;
-        renderDetailPage();
-      }
-    });
-
-    el.modalBackdrop.addEventListener("click", (e) => {
-      if (e.target === el.modalBackdrop) closeDetailModal();
-    });
-
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") closeDetailModal();
-    });
-
-    // CSV loader
-    document.getElementById("csvFileInput").addEventListener("change", (e) => {
-      const file = e.target.files && e.target.files[0];
-      if (!file) return;
-      el.fileName.textContent = file.name;
-
-      const reader = new FileReader();
-      reader.onload = evt => {
-        const text = String(evt.target.result || "");
-        const rawRows = parseCSV(text);
-        personnel = rawRows.map(normalizeRow);
-
-        updateSummary();
-        renderMos();
-        renderUnitTable();
-        renderFullMatrix();
-        renderTeamBoard();
-      };
-      reader.readAsText(file);
-    });
-
-    // init
-    wireKpiClicks();
-    initCollapsibles();
-    collapseByDefault("hdrMatrix");
-    collapseByDefault("hdrTeam");
-  </script>
-</body>
-</html>
-
-
  <script>
-    function applyKpiColor(element, percent) {
-      element.classList.remove("kpi-red", "kpi-yellow", "kpi-green");
-      if (percent <= 40) {
-        element.classList.add("kpi-red");
-      } else if (percent <= 80) {
-        element.classList.add("kpi-yellow");
-      } else {
-        element.classList.add("kpi-green");
-      }
+  function applyKpiColor(element, percent) {
+    element.classList.remove("kpi-red", "kpi-yellow", "kpi-green");
+    if (percent <= 40) {
+      element.classList.add("kpi-red");
+    } else if (percent <= 80) {
+      element.classList.add("kpi-yellow");
+    } else {
+      element.classList.add("kpi-green");
+    }
+  }
+
+  let personnel = [];
+
+  let detailList = [];
+  const detailPageSize = 20;
+  let detailCurrentPage = 1;
+
+  const fullColumns = [
+    "UNIT","Rank","Last Name","First Name","EDIPI","Email","BIC","Status",
+    "Status Start","Status End Date","MOS","Billet","Clearance","Section",
+    "Squad","Team",
+    "MCEN-S USER","MCEN-N USER","MCEN-N ADMIN","MCEN-S ADMIN",
+    "TIE-N USER","TIE-N UA","TIE-N SA","TIE-S USER","TIE-S UA","TIE-S SA",
+    "TIE-NS USER","TIE-NS UA","TIE-NS SA","TIE-N NA","TIE-S NA","TIE-NA NA",
+    "PFT","CFT","ARQ","HEIGHT AND WEIGHT","GAS CHAMBER",
+    "SAPR","CYBER AWARENESS/PII","RECORDS MANAGEMENT","PAC","UMAPIT",
+    "RISK MANAGEMENT","OPSEC","LV 1 AT","CIAR","LLES","CORPORALS COURSE",
+    "SERGEANT SCHOOL","CPTR","HUMVEE LICENSE","JLTV LICENSE","MAI","MCWST",
+    "TCCC TIER 1","TCCC TIER 2","TCCC TIER 3","TCCC TIER 4",
+    "Current Operation","Current Operation : Start Time","Current Operation : End Time",
+    "Future Operation","Future Operation: Start Time","Future Operation: End Time"
+  ];
+
+  const trainingFields = [
+    { id: "Pft", label: "PFT", col: "PFT" },
+    { id: "Cft", label: "CFT", col: "CFT" },
+    { id: "Arq", label: "ARQ", col: "ARQ" },
+    { id: "Htwt", label: "HEIGHT AND WEIGHT", col: "HEIGHT AND WEIGHT" },
+    { id: "Gas", label: "GAS CHAMBER", col: "GAS CHAMBER" },
+    { id: "Sapr", label: "SAPR", col: "SAPR" },
+    { id: "Cyber", label: "CYBER AWARENESS/PII", col: "CYBER AWARENESS/PII" },
+    { id: "Records", label: "RECORDS MANAGEMENT", col: "RECORDS MANAGEMENT" },
+    { id: "Pac", label: "PAC", col: "PAC" },
+    { id: "Umapit", label: "UMAPIT", col: "UMAPIT" },
+    { id: "Risk", label: "RISK MANAGEMENT", col: "RISK MANAGEMENT" },
+    { id: "Opsec", label: "OPSEC", col: "OPSEC" },
+    { id: "Lv1At", label: "LV 1 AT", col: "LV 1 AT" },
+    { id: "Ciar", label: "CIAR", col: "CIAR" },
+    { id: "Lles", label: "LLES", col: "LLES" }
+  ];
+
+  // TRAINING / ACCOUNT HELPER
+  // Treat "trained", "completed", "yes", or "active" (but not "inactive") as positive.
+  function isTrainedValue(value) {
+    if (value == null) return false;
+    const v = String(value).trim().toLowerCase();
+    if (!v) return false;
+
+    // Explicit negatives
+    if (
+      v.includes("inactive") ||
+      v.includes("deactivated") ||
+      v.includes("disabled") ||
+      v === "no" ||
+      v === "none" ||
+      v === "n/a" ||
+      v === "na" ||
+      v === "0"
+    ) {
+      return false;
     }
 
-    let personnel = [];
+    const positives = ["trained", "completed", "yes", "active"];
+    if (positives.includes(v)) return true;
 
-    let detailList = [];
-    const detailPageSize = 20;
-    let detailCurrentPage = 1;
+    // Any other string containing "active" (e.g. "active user")
+    if (v.includes("active")) return true;
 
-    let mosStats = [];
-    let mosPieSlices = [];
-    let mosPieSelectedIndex = -1;
+    return false;
+  }
 
-    const MOS_DONUT_OUTER = 70;
-    const MOS_DONUT_INNER = 40;
+  const el = {
+    fileName: document.getElementById("fileNameLabel"),
+    kpiTotal: document.getElementById("kpiTotal"),
+    kpiAvailable: document.getElementById("kpiAvailable"),
+    kpiAvailablePct: document.getElementById("kpiAvailablePct"),
+    kpiLeave: document.getElementById("kpiLeave"),
+    kpiTad: document.getElementById("kpiTad"),
+    kpiMed: document.getElementById("kpiMed"),
+    kpiOpsTotal: document.getElementById("kpiOpsTotal"),
+    kpiOpsCurrent: document.getElementById("kpiOpsCurrent"),
+    kpiOpsFuture: document.getElementById("kpiOpsFuture"),
+    kpiMissionReady: document.getElementById("kpiMissionReady"),
+    kpiMissionPct: document.getElementById("kpiMissionPct"),
+    kpiDrvPctValue: document.getElementById("kpiDrvPctValue"),
+    kpiDrvCount: document.getElementById("kpiDrvCount"),
+    kpiTcccPctValue: document.getElementById("kpiTcccPctValue"),
+    kpiTcccCount: document.getElementById("kpiTcccCount"),
+    kpiLdrPctValue: document.getElementById("kpiLdrPctValue"),
+    kpiLdrCount: document.getElementById("kpiLdrCount"),
+    mosTable: document.getElementById("mosTable"),
+    mosBody: document.querySelector("#mosTable tbody"),
+    mosEmpty: document.getElementById("mosEmpty"),
+    unitTable: document.getElementById("unitTable"),
+    unitBody: document.querySelector("#unitTable tbody"),
+    unitEmpty: document.getElementById("unitEmpty"),
+    unitDetailWrapper: document.getElementById("unitDetailWrapper"),
+    unitDetailBody: document.querySelector("#unitDetailTable tbody"),
+    unitBreakTitle: document.getElementById("unitBreakTitle"),
+    fullTable: document.getElementById("fullBoardTable"),
+    fullHeaderRow: document.getElementById("fullBoardHeaderRow"),
+    fullBody: document.querySelector("#fullBoardTable tbody"),
+    fullEmpty: document.getElementById("fullBoardEmpty"),
+    teamTable: document.getElementById("teamTable"),
+    teamBody: document.querySelector("#teamTable tbody"),
+    teamEmpty: document.getElementById("teamEmpty"),
+    teamDetailWrapper: document.getElementById("teamDetailWrapper"),
+    teamDetailBody: document.querySelector("#teamDetailTable tbody"),
+    teamBreakTitle: document.getElementById("teamBreakTitle"),
+    modalBackdrop: document.getElementById("detailModalBackdrop"),
+    detailTitle: document.getElementById("detailTitle"),
+    detailSubtitle: document.getElementById("detailSubtitle"),
+    detailBody: document.getElementById("detailBody"),
+    detailCount: document.getElementById("detailCountBadge"),
+    btnPrev: document.getElementById("btnPrevPage"),
+    btnNext: document.getElementById("btnNextPage"),
+    pageInfo: document.getElementById("pageInfo")
+  };
 
-    const fullColumns = [
-      "UNIT","Rank","Last Name","First Name","EDIPI","Email","BIC","Status",
-      "Status Start","Status End Date","MOS","Billet","Clearance","Section",
-      "Squad","Team",
-      "MCEN-S USER","MCEN-N USER","MCEN-N ADMIN","MCEN-S ADMIN",
-      "TIE-N USER","TIE-N UA","TIE-N SA","TIE-S USER","TIE-S UA","TIE-S SA",
-      "TIE-NS USER","TIE-NS UA","TIE-NS SA","TIE-N NA","TIE-S NA","TIE-NA NA",
-      "PFT","CFT","ARQ","HEIGHT AND WEIGHT","GAS CHAMBER",
-      "SAPR","CYBER AWARENESS/PII","RECORDS MANAGEMENT","PAC","UMAPIT",
-      "RISK MANAGEMENT","OPSEC","LV 1 AT","CIAR","LLES","CORPORALS COURSE",
-      "SERGEANT SCHOOL","CPTR","HUMVEE LICENSE","JLTV LICENSE","MAI","MCWST",
-      "TCCC TIER 1","TCCC TIER 2","TCCC TIER 3","TCCC TIER 4",
-      "Current Operation","Current Operation : Start Time","Current Operation : End Time",
-      "Future Operation","Future Operation: Start Time","Future Operation: End Time"
-    ];
-
-    const trainingFields = [
-      { id: "Pft", label: "PFT", col: "PFT" },
-      { id: "Cft", label: "CFT", col: "CFT" },
-      { id: "Arq", label: "ARQ", col: "ARQ" },
-      { id: "Htwt", label: "HEIGHT AND WEIGHT", col: "HEIGHT AND WEIGHT" },
-      { id: "Gas", label: "GAS CHAMBER", col: "GAS CHAMBER" },
-      { id: "Sapr", label: "SAPR", col: "SAPR" },
-      { id: "Cyber", label: "CYBER AWARENESS/PII", col: "CYBER AWARENESS/PII" },
-      { id: "Records", label: "RECORDS MANAGEMENT", col: "RECORDS MANAGEMENT" },
-      { id: "Pac", label: "PAC", col: "PAC" },
-      { id: "Umapit", label: "UMAPIT", col: "UMAPIT" },
-      { id: "Risk", label: "RISK MANAGEMENT", col: "RISK MANAGEMENT" },
-      { id: "Opsec", label: "OPSEC", col: "OPSEC" },
-      { id: "Lv1At", label: "LV 1 AT", col: "LV 1 AT" },
-      { id: "Ciar", label: "CIAR", col: "CIAR" },
-      { id: "Lles", label: "LLES", col: "LLES" }
-    ];
-
-    // ACCOUNT cells (MCEN/TIE): only "Active" is positive, anything else is negative
-function hasActiveAccount(value) {
-  if (!value) return false;
-  const v = String(value).trim().toLowerCase();
-  return v === "active";   // only "active" counts
-}
-
-    const el = {
-      fileName: document.getElementById("fileNameLabel"),
-      kpiTotal: document.getElementById("kpiTotal"),
-      kpiAvailable: document.getElementById("kpiAvailable"),
-      kpiAvailablePct: document.getElementById("kpiAvailablePct"),
-      kpiLeave: document.getElementById("kpiLeave"),
-      kpiTad: document.getElementById("kpiTad"),
-      kpiMed: document.getElementById("kpiMed"),
-      kpiOpsTotal: document.getElementById("kpiOpsTotal"),
-      kpiOpsCurrent: document.getElementById("kpiOpsCurrent"),
-      kpiOpsFuture: document.getElementById("kpiOpsFuture"),
-      kpiMissionReady: document.getElementById("kpiMissionReady"),
-      kpiMissionPct: document.getElementById("kpiMissionPct"),
-      kpiDrvPctValue: document.getElementById("kpiDrvPctValue"),
-      kpiDrvCount: document.getElementById("kpiDrvCount"),
-      kpiTcccPctValue: document.getElementById("kpiTcccPctValue"),
-      kpiTcccCount: document.getElementById("kpiTcccCount"),
-      kpiLdrPctValue: document.getElementById("kpiLdrPctValue"),
-      kpiLdrCount: document.getElementById("kpiLdrCount"),
-      mosTable: document.getElementById("mosTable"),
-      mosBody: document.querySelector("#mosTable tbody"),
-      mosEmpty: document.getElementById("mosEmpty"),
-      mosPieCanvas: document.getElementById("mosPieCanvas"),
-      mosPieInfo: document.getElementById("mosPieInfo"),
-      unitTable: document.getElementById("unitTable"),
-      unitBody: document.querySelector("#unitTable tbody"),
-      unitEmpty: document.getElementById("unitEmpty"),
-      unitDetailWrapper: document.getElementById("unitDetailWrapper"),
-      unitDetailBody: document.querySelector("#unitDetailTable tbody"),
-      unitBreakTitle: document.getElementById("unitBreakTitle"),
-      fullTable: document.getElementById("fullBoardTable"),
-      fullHeaderRow: document.getElementById("fullBoardHeaderRow"),
-      fullBody: document.querySelector("#fullBoardTable tbody"),
-      fullEmpty: document.getElementById("fullBoardEmpty"),
-      teamTable: document.getElementById("teamTable"),
-      teamBody: document.querySelector("#teamTable tbody"),
-      teamEmpty: document.getElementById("teamEmpty"),
-      teamDetailWrapper: document.getElementById("teamDetailWrapper"),
-      teamDetailBody: document.querySelector("#teamDetailTable tbody"),
-      teamBreakTitle: document.getElementById("teamBreakTitle"),
-      modalBackdrop: document.getElementById("detailModalBackdrop"),
-      detailTitle: document.getElementById("detailTitle"),
-      detailSubtitle: document.getElementById("detailSubtitle"),
-      detailBody: document.getElementById("detailBody"),
-      detailCount: document.getElementById("detailCountBadge"),
-      btnPrev: document.getElementById("btnPrevPage"),
-      btnNext: document.getElementById("btnNextPage"),
-      pageInfo: document.getElementById("pageInfo")
-    };
-
-    // --- CSV parsing with header normalization ---
-    function normalizeHeaderName(h) {
-      h = h.trim();
-      if (h.startsWith('"') && h.endsWith('"') && h.length >= 2) {
-        h = h.slice(1, -1);
-      }
-      h = h.replace(/\s+/g, " ");
-      return h;
+  // --- CSV parsing with header normalization ---
+  function normalizeHeaderName(h) {
+    h = h.trim();
+    if (h.startsWith('"') && h.endsWith('"') && h.length >= 2) {
+      h = h.slice(1, -1);
     }
+    h = h.replace(/\s+/g, " ");
+    return h;
+  }
 
-    function splitCsvLine(line) {
-      const result = [];
-      let current = "";
-      let inQuotes = false;
-      for (let i = 0; i < line.length; i++) {
-        const ch = line[i];
-        if (ch === '"') {
-          if (inQuotes && line[i + 1] === '"') {
-            current += '"';
-            i++;
-          } else {
-            inQuotes = !inQuotes;
-          }
-        } else if (ch === "," && !inQuotes) {
-          result.push(current);
-          current = "";
+  function splitCsvLine(line) {
+    const result = [];
+    let current = "";
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQuotes && line[i + 1] === '"') {
+          current += '"';
+          i++;
         } else {
-          current += ch;
+          inQuotes = !inQuotes;
         }
+      } else if (ch === "," && !inQuotes) {
+        result.push(current);
+        current = "";
+      } else {
+        current += ch;
       }
-      result.push(current);
-      return result;
     }
+    result.push(current);
+    return result;
+  }
 
-    function parseCSV(text) {
-      text = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
-      if (text.charCodeAt(0) === 0xFEFF) {
-        text = text.slice(1);
-      }
-      const lines = text.split("\n").filter(line => line.trim().length > 0);
-      if (!lines.length) return [];
-
-      const headerCells = splitCsvLine(lines[0]);
-      const headers = headerCells.map(normalizeHeaderName);
-
-      const rows = [];
-      for (let i = 1; i < lines.length; i++) {
-        const line = lines[i];
-        if (!line.trim()) continue;
-        const cells = splitCsvLine(line);
-        if (cells.length === 1 && !cells[0].trim()) continue;
-
-        const obj = {};
-        headers.forEach((h, idx) => {
-          let v = cells[idx] ?? "";
-          v = v.trim();
-          if (v.startsWith('"') && v.endsWith('"') && v.length >= 2) {
-            v = v.slice(1, -1);
-          }
-          obj[h] = v;
-        });
-        rows.push(obj);
-      }
-      return rows;
+  function parseCSV(text) {
+    text = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+    if (text.charCodeAt(0) === 0xFEFF) {
+      text = text.slice(1);
     }
-    // --- end CSV parser ---
+    const lines = text.split("\n").filter(line => line.trim().length > 0);
+    if (!lines.length) return [];
 
-    function normalizeRow(row) {
-      const rank = row["Rank"] || "";
-      const lastName = row["Last Name"] || "";
-      const firstName = row["First Name"] || "";
-      const unit = row["UNIT"] || "";
-      const mos = row["MOS"] || "";
-      const statusRaw = row["Status"] || "";
-      const statusStart = row["Status Start"] || "";
-      const statusEnd = row["Status End Date"] || "";
-      const edipi = row["EDIPI"] || "";
-      const email = row["Email"] || "";
-      const section = row["Section"] || "";
-      const squad = row["Squad"] || "";
-      const team = row["Team"] || "";
+    const headerCells = splitCsvLine(lines[0]);
+    const headers = headerCells.map(normalizeHeaderName);
 
-      const currentOp = row["Current Operation"] || "";
-      const currentOpStart = row["Current Operation : Start Time"] || "";
-      const currentOpEnd = row["Current Operation : End Time"] || "";
+    const rows = [];
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i];
+      if (!line.trim()) continue;
+      const cells = splitCsvLine(line);
+      if (cells.length === 1 && !cells[0].trim()) continue;
 
-      const futureOp = row["Future Operation"] || "";
-      const futureOpStart = row["Future Operation: Start Time"] || "";
-      const futureOpEnd = row["Future Operation: End Time"] || "";
-
-      const statusLower = statusRaw.toLowerCase();
-      const isLeave = statusLower.includes("leave");
-      const isTad = statusLower.includes("tad");
-      const isMedical =
-        statusLower.includes("medical") ||
-        statusLower.includes("light") ||
-        statusLower.includes("limited");
-      const isCommittedCurrent = !!(currentOp || "").trim();
-      const isCommittedFuture = !!(futureOp || "").trim();
-      const isAvailable =
-        statusLower.includes("present") ||
-        statusLower.includes("on hand") ||
-        statusLower.includes("on-hand");
-
-      return {
-        rank, lastName, firstName, edipi, email,
-        unit, mos, statusRaw, statusStart, statusEnd,
-        section, squad, team,
-        currentOp, currentOpStart, currentOpEnd,
-        futureOp, futureOpStart, futureOpEnd,
-        full: { ...row },
-        flags: {
-          isLeave,
-          isTad,
-          isMedical,
-          isCommittedCurrent,
-          isCommittedFuture,
-          isAvailable
+      const obj = {};
+      headers.forEach((h, idx) => {
+        let v = cells[idx] ?? "";
+        v = v.trim();
+        if (v.startsWith('"') && v.endsWith('"') && v.length >= 2) {
+          v = v.slice(1, -1);
         }
-      };
+        obj[h] = v;
+      });
+      rows.push(obj);
     }
+    return rows;
+  }
+  // --- end CSV parser ---
 
-    function groupBy(list, keyFn) {
-      const m = new Map();
-      for (const item of list) {
-        const k = keyFn(item);
-        if (!m.has(k)) m.set(k, []);
-        m.get(k).push(item);
+  function normalizeRow(row) {
+    const rank = row["Rank"] || "";
+    const lastName = row["Last Name"] || "";
+    const firstName = row["First Name"] || "";
+    const unit = (row["UNIT"] || "").trim();
+    const mos = row["MOS"] || "";
+    const statusRaw = row["Status"] || "";
+    const statusStart = row["Status Start"] || "";
+    const statusEnd = row["Status End Date"] || "";
+    const edipi = row["EDIPI"] || "";
+    const email = row["Email"] || "";
+    const section = row["Section"] || "";
+    const squad = row["Squad"] || "";
+    const team = row["Team"] || "";
+
+    const currentOp = row["Current Operation"] || "";
+    const currentOpStart = row["Current Operation : Start Time"] || "";
+    const currentOpEnd = row["Current Operation : End Time"] || "";
+
+    const futureOp = row["Future Operation"] || "";
+    const futureOpStart = row["Future Operation: Start Time"] || "";
+    const futureOpEnd = row["Future Operation: End Time"] || "";
+
+    const statusLower = statusRaw.toLowerCase();
+    const isLeave = statusLower.includes("leave");
+    const isTad = statusLower.includes("tad");
+    const isMedical =
+      statusLower.includes("medical") ||
+      statusLower.includes("light") ||
+      statusLower.includes("limited");
+    const isCommittedCurrent = !!(currentOp || "").trim();
+    const isCommittedFuture = !!(futureOp || "").trim();
+    const isAvailable =
+      statusLower.includes("present") ||
+      statusLower.includes("on hand") ||
+      statusLower.includes("on-hand");
+
+    return {
+      rank, lastName, firstName, edipi, email,
+      unit, mos, statusRaw, statusStart, statusEnd,
+      section, squad, team,
+      currentOp, currentOpStart, currentOpEnd,
+      futureOp, futureOpStart, futureOpEnd,
+      full: { ...row },
+      flags: {
+        isLeave,
+        isTad,
+        isMedical,
+        isCommittedCurrent,
+        isCommittedFuture,
+        isAvailable
       }
-      return m;
+    };
+  }
+
+  function groupBy(list, keyFn) {
+    const m = new Map();
+    for (const item of list) {
+      const k = keyFn(item);
+      if (!m.has(k)) m.set(k, []);
+      m.get(k).push(item);
+    }
+    return m;
+  }
+
+  function updateSummary() {
+    const total = personnel.length;
+    const leave = personnel.filter(p => p.flags.isLeave).length;
+    const tad = personnel.filter(p => p.flags.isTad).length;
+    const med = personnel.filter(p => p.flags.isMedical).length;
+    const currentOps = personnel.filter(p => p.flags.isCommittedCurrent).length;
+    const futureOps = personnel.filter(p => p.flags.isCommittedFuture).length;
+    const committedOps = currentOps + futureOps;
+    const available = personnel.filter(p => p.flags.isAvailable).length;
+
+    const missionReady = personnel.filter(p =>
+      p.flags.isAvailable &&
+      !p.flags.isMedical &&
+      !p.flags.isCommittedCurrent &&
+      !p.flags.isCommittedFuture
+    ).length;
+
+    el.kpiTotal.textContent = total;
+    el.kpiLeave.textContent = leave;
+    el.kpiTad.textContent = tad;
+    el.kpiMed.textContent = med;
+    el.kpiOpsCurrent.textContent = currentOps;
+    el.kpiOpsFuture.textContent = futureOps;
+    el.kpiOpsTotal.textContent = committedOps;
+    el.kpiAvailable.textContent = available;
+    el.kpiMissionReady.textContent = missionReady;
+
+    const pctAvail = total ? Math.round((available / total) * 100) : 0;
+    const pctMission = total ? Math.round((missionReady / total) * 100) : 0;
+    el.kpiAvailablePct.textContent = pctAvail + "%";
+    el.kpiMissionPct.textContent = pctMission + "%";
+
+    updateTrainingKPIs();
+  }
+
+  function updateTrainingKPIs() {
+    const total = personnel.length;
+
+    if (!total) {
+      el.kpiDrvPctValue.textContent = "0%";
+      el.kpiDrvCount.textContent = "0 Marines";
+      el.kpiTcccPctValue.textContent = "0%";
+      el.kpiTcccCount.textContent = "0 Marines";
+      el.kpiLdrPctValue.textContent = "0%";
+      el.kpiLdrCount.textContent = "0 Marines";
+
+      trainingFields.forEach(tf => {
+        const pctEl   = document.getElementById(`kpi${tf.id}PctValue`);
+        const countEl = document.getElementById(`kpi${tf.id}Count`);
+        if (pctEl) {
+          pctEl.textContent = "0%";
+          applyKpiColor(pctEl, 0);
+        }
+        if (countEl) {
+          countEl.textContent = "0 Marines";
+        }
+      });
+      return;
     }
 
-    function updateSummary() {
-      const total = personnel.length;
-      const leave = personnel.filter(p => p.flags.isLeave).length;
-      const tad = personnel.filter(p => p.flags.isTad).length;
-      const med = personnel.filter(p => p.flags.isMedical).length;
-      const currentOps = personnel.filter(p => p.flags.isCommittedCurrent).length;
-      const futureOps = personnel.filter(p => p.flags.isCommittedFuture).length;
-      const committedOps = currentOps + futureOps;
-      const available = personnel.filter(p => p.flags.isAvailable).length;
+    // DRIVERS: HUMVEE / JLTV licensed
+    const drvList = personnel.filter(p =>
+      isTrainedValue(p.full["HUMVEE LICENSE"]) ||
+      isTrainedValue(p.full["JLTV LICENSE"])
+    );
 
-      const missionReady = personnel.filter(p =>
-        p.flags.isAvailable &&
-        !p.flags.isMedical &&
-        !p.flags.isCommittedCurrent &&
-        !p.flags.isCommittedFuture
-      ).length;
+    // TCCC: any tier
+    const tcccList = personnel.filter(p =>
+      isTrainedValue(p.full["TCCC TIER 1"]) ||
+      isTrainedValue(p.full["TCCC TIER 2"]) ||
+      isTrainedValue(p.full["TCCC TIER 3"]) ||
+      isTrainedValue(p.full["TCCC TIER 4"])
+    );
 
-      el.kpiTotal.textContent = total;
-      el.kpiLeave.textContent = leave;
-      el.kpiTad.textContent = tad;
-      el.kpiMed.textContent = med;
-      el.kpiOpsCurrent.textContent = currentOps;
-      el.kpiOpsFuture.textContent = futureOps;
-      el.kpiOpsTotal.textContent = committedOps;
-      el.kpiAvailable.textContent = available;
-      el.kpiMissionReady.textContent = missionReady;
+    // Leadership courses
+    const ldrList = personnel.filter(p =>
+      isTrainedValue(p.full["CORPORALS COURSE"]) ||
+      isTrainedValue(p.full["SERGEANT SCHOOL"])
+    );
 
-      const pctAvail = total ? Math.round((available / total) * 100) : 0;
-      const pctMission = total ? Math.round((missionReady / total) * 100) : 0;
-      el.kpiAvailablePct.textContent = pctAvail + "%";
-      el.kpiMissionPct.textContent = pctMission + "%";
+    const drvPct  = Math.round((drvList.length  / total) * 100);
+    const tcccPct = Math.round((tcccList.length / total) * 100);
+    const ldrPct  = Math.round((ldrList.length  / total) * 100);
 
-      updateTrainingKPIs();
-    }
+    el.kpiDrvPctValue.textContent = drvPct + "%";
+    applyKpiColor(el.kpiDrvPctValue, drvPct);
+    el.kpiDrvCount.textContent = `${drvList.length} Marines`;
 
-    function updateTrainingKPIs() {
-      const total = personnel.length;
+    el.kpiTcccPctValue.textContent = tcccPct + "%";
+    applyKpiColor(el.kpiTcccPctValue, tcccPct);
+    el.kpiTcccCount.textContent = `${tcccList.length} Marines`;
 
-      if (!total) {
-        el.kpiDrvPctValue.textContent = "0%";
-        el.kpiDrvCount.textContent = "0 Marines";
-        el.kpiTcccPctValue.textContent = "0%";
-        el.kpiTcccCount.textContent = "0 Marines";
-        el.kpiLdrPctValue.textContent = "0%";
-        el.kpiLdrCount.textContent = "0 Marines";
+    el.kpiLdrPctValue.textContent = ldrPct + "%";
+    applyKpiColor(el.kpiLdrPctValue, ldrPct);
+    el.kpiLdrCount.textContent = `${ldrList.length} Marines`;
 
-        trainingFields.forEach(tf => {
-          const pctEl   = document.getElementById(`kpi${tf.id}PctValue`);
-          const countEl = document.getElementById(`kpi${tf.id}Count`);
-          if (pctEl) {
-            pctEl.textContent = "0%";
-            applyKpiColor(pctEl, 0);
-          }
-          if (countEl) {
-            countEl.textContent = "0 Marines";
-          }
-        });
-        return;
+    // other training boards
+    trainingFields.forEach(tf => {
+      const positives = personnel.filter(p => isTrainedValue(p.full[tf.col]));
+      const pct = Math.round((positives.length / total) * 100);
+
+      const pctEl   = document.getElementById(`kpi${tf.id}PctValue`);
+      const countEl = document.getElementById(`kpi${tf.id}Count`);
+
+      if (pctEl) {
+        pctEl.textContent = pct + "%";
+        applyKpiColor(pctEl, pct);
       }
 
-      // DRIVERS: HUMVEE / JLTV licensed
-      const drvList = personnel.filter(p =>
+      if (countEl) {
+        countEl.textContent = `${positives.length} Marines`;
+      }
+    });
+  }
+
+  function createNumberCell(value, clickable, payload) {
+    const td = document.createElement("td");
+    td.classList.add("numeric");
+    if (!clickable) {
+      td.textContent = value;
+      return td;
+    }
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "clickable-number";
+    btn.textContent = value;
+    Object.entries(payload).forEach(([k, v]) => btn.dataset[k] = String(v));
+    btn.addEventListener("click", () => handleNumberClick(btn));
+    td.appendChild(btn);
+    return td;
+  }
+
+  function renderMos() {
+    el.mosBody.innerHTML = "";
+
+    if (!personnel.length) {
+      el.mosTable.classList.add("hidden");
+      el.mosEmpty.classList.remove("hidden");
+      return;
+    }
+
+    const groups = groupBy(personnel, p => p.mos || "UNK");
+    const keys = Array.from(groups.keys()).sort((a, b) => {
+      const na = parseInt(a, 10), nb = parseInt(b, 10);
+      if (!isNaN(na) && !isNaN(nb)) return na - nb;
+      return String(a).localeCompare(String(b));
+    });
+
+    for (const mos of keys) {
+      const list = groups.get(mos);
+      const total = list.length;
+      const available = list.filter(p => p.flags.isAvailable).length;
+      const leave = list.filter(p => p.flags.isLeave).length;
+      const tad = list.filter(p => p.flags.isTad).length;
+      const med = list.filter(p => p.flags.isMedical).length;
+      const currentOps = list.filter(p => p.flags.isCommittedCurrent).length;
+      const futureOps = list.filter(p => p.flags.isCommittedFuture).length;
+
+      const tr = document.createElement("tr");
+      const tdMos = document.createElement("td");
+      tdMos.textContent = mos;
+      tr.appendChild(tdMos);
+
+      tr.appendChild(createNumberCell(total, total > 0, { type: "mos", mos, key: "total" }));
+      tr.appendChild(createNumberCell(available, available > 0, { type: "mos", mos, key: "available" }));
+      tr.appendChild(createNumberCell(leave, leave > 0, { type: "mos", mos, key: "leave" }));
+      tr.appendChild(createNumberCell(tad, tad > 0, { type: "mos", mos, key: "tad" }));
+      tr.appendChild(createNumberCell(med, med > 0, { type: "mos", mos, key: "med" }));
+      tr.appendChild(createNumberCell(currentOps, currentOps > 0, { type: "mos", mos, key: "currentOps" }));
+      tr.appendChild(createNumberCell(futureOps, futureOps > 0, { type: "mos", mos, key: "futureOps" }));
+
+      el.mosBody.appendChild(tr);
+    }
+
+    el.mosTable.classList.remove("hidden");
+    el.mosEmpty.classList.add("hidden");
+  }
+
+  function renderUnitTable() {
+    el.unitBody.innerHTML = "";
+    el.unitDetailBody.innerHTML = "";
+    el.unitDetailWrapper.classList.add("hidden");
+
+    if (!personnel.length) {
+      el.unitTable.classList.add("hidden");
+      el.unitEmpty.classList.remove("hidden");
+      return;
+    }
+
+    const groups = groupBy(personnel, p => p.unit || "UNK");
+    const units = Array.from(groups.keys()).sort((a, b) => a.localeCompare(b));
+
+    for (const unit of units) {
+      const list = groups.get(unit);
+      const total = list.length;
+      const available = list.filter(p => p.flags.isAvailable).length;
+      const notAvail = total - available;
+      const ops = list.filter(p => p.flags.isCommittedCurrent || p.flags.isCommittedFuture).length;
+
+      const tr = document.createElement("tr");
+
+      const tdUnit = document.createElement("td");
+      tdUnit.classList.add("unit-cell");
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "unit-btn";
+      btn.textContent = unit;
+      btn.addEventListener("click", () => showUnitBreakdown(unit));
+      tdUnit.appendChild(btn);
+      tr.appendChild(tdUnit);
+
+      tr.appendChild(createNumberCell(total, total > 0, { type: "unitAgg", unit, key: "total" }));
+      tr.appendChild(createNumberCell(available, available > 0, { type: "unitAgg", unit, key: "available" }));
+      tr.appendChild(createNumberCell(notAvail, notAvail > 0, { type: "unitAgg", unit, key: "notAvailable" }));
+      tr.appendChild(createNumberCell(ops, ops > 0, { type: "unitAgg", unit, key: "ops" }));
+
+      el.unitBody.appendChild(tr);
+    }
+
+    el.unitTable.classList.remove("hidden");
+    el.unitEmpty.classList.add("hidden");
+  }
+
+  function showUnitBreakdown(unit) {
+    const list = personnel.filter(p => (p.unit || "UNK") === unit);
+    el.unitDetailBody.innerHTML = "";
+    if (!list.length) {
+      el.unitDetailWrapper.classList.add("hidden");
+      return;
+    }
+    el.unitBreakTitle.textContent = `Unit: ${unit}`;
+    el.unitDetailWrapper.classList.remove("hidden");
+
+    const groups = groupBy(list, p =>
+      [p.section || "UNK", p.squad || "UNK", p.team || "UNK"].join("||")
+    );
+    const keys = Array.from(groups.keys()).sort((a, b) => a.localeCompare(b));
+
+    for (const key of keys) {
+      const [section, squad, team] = key.split("||");
+      const seg = groups.get(key);
+      const total = seg.length;
+      const available = seg.filter(p => p.flags.isAvailable).length;
+      const notAvail = total - available;
+      const ops = seg.filter(p => p.flags.isCommittedCurrent || p.flags.isCommittedFuture).length;
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${section}</td><td>${squad}</td><td>${team}</td>`;
+      const basePayload = { type: "unitElem", unit, section, squad, team };
+      tr.appendChild(createNumberCell(total, total > 0, { ...basePayload, key: "total" }));
+      tr.appendChild(createNumberCell(available, available > 0, { ...basePayload, key: "available" }));
+      tr.appendChild(createNumberCell(notAvail, notAvail > 0, { ...basePayload, key: "notAvailable" }));
+      tr.appendChild(createNumberCell(ops, ops > 0, { ...basePayload, key: "ops" }));
+      el.unitDetailBody.appendChild(tr);
+    }
+  }
+
+  function renderFullMatrix() {
+    el.fullBody.innerHTML = "";
+    el.fullHeaderRow.innerHTML = "";
+
+    if (!personnel.length) {
+      el.fullTable.classList.add("hidden");
+      el.fullEmpty.classList.remove("hidden");
+      return;
+    }
+
+    fullColumns.forEach(col => {
+      const th = document.createElement("th");
+      th.textContent = col;
+      el.fullHeaderRow.appendChild(th);
+    });
+
+    const groups = groupBy(personnel, p => p.unit || "UNK");
+    const units = Array.from(groups.keys()).sort((a, b) => a.localeCompare(b));
+
+    for (const unit of units) {
+      const unitList = groups.get(unit).slice().sort((a, b) => {
+        const ln = a.lastName.localeCompare(b.lastName);
+        if (ln !== 0) return ln;
+        return a.firstName.localeCompare(b.firstName);
+      });
+
+      const unitRow = document.createElement("tr");
+      unitRow.className = "matrix-unit-row";
+      unitRow.dataset.unit = unit;
+
+      const tdUnit = document.createElement("td");
+      tdUnit.colSpan = fullColumns.length;
+      const arrowSpan = document.createElement("span");
+      arrowSpan.className = "matrix-unit-toggle";
+      arrowSpan.dataset.arrowFor = unit;
+      arrowSpan.textContent = "▶";
+      tdUnit.appendChild(arrowSpan);
+      const labelSpan = document.createElement("span");
+      labelSpan.textContent = ` ${unit}  (${unitList.length} Marines)`;
+      tdUnit.appendChild(labelSpan);
+      unitRow.appendChild(tdUnit);
+
+      unitRow.addEventListener("click", () => toggleUnitGroup(unit));
+
+      el.fullBody.appendChild(unitRow);
+
+      for (const p of unitList) {
+        const tr = document.createElement("tr");
+        tr.className = "unit-member-row hidden";
+        tr.dataset.unit = unit;
+
+        for (const col of fullColumns) {
+          const td = document.createElement("td");
+          let val = "";
+
+          if (p.full && Object.prototype.hasOwnProperty.call(p.full, col)) {
+            val = p.full[col] || "";
+          }
+
+          if (!val) {
+            switch (col) {
+              case "UNIT": val = p.unit; break;
+              case "Rank": val = p.rank; break;
+              case "Last Name": val = p.lastName; break;
+              case "First Name": val = p.firstName; break;
+              case "EDIPI": val = p.edipi; break;
+              case "Email": val = p.email; break;
+              case "MOS": val = p.mos; break;
+              case "Status": val = p.statusRaw; break;
+              case "Status Start": val = p.statusStart; break;
+              case "Status End Date": val = p.statusEnd; break;
+              case "Section": val = p.section; break;
+              case "Squad": val = p.squad; break;
+              case "Team": val = p.team; break;
+              case "Current Operation": val = p.currentOp; break;
+              case "Current Operation : Start Time": val = p.currentOpStart; break;
+              case "Current Operation : End Time": val = p.currentOpEnd; break;
+              case "Future Operation": val = p.futureOp; break;
+              case "Future Operation: Start Time": val = p.futureOpStart; break;
+              case "Future Operation: End Time": val = p.futureOpEnd; break;
+            }
+          }
+
+          td.textContent = val;
+          tr.appendChild(td);
+        }
+        el.fullBody.appendChild(tr);
+      }
+    }
+
+    el.fullTable.classList.remove("hidden");
+    el.fullEmpty.classList.add("hidden");
+  }
+
+  function toggleUnitGroup(unit) {
+    if (!el.fullBody) return;
+
+    const rows = el.fullBody.querySelectorAll(`tr.unit-member-row[data-unit="${unit}"]`);
+    const arrow = el.fullBody.querySelector(`span.matrix-unit-toggle[data-arrow-for="${unit}"]`);
+
+    if (!rows.length) {
+      console.warn("No member rows found for unit:", unit);
+      return;
+    }
+
+    let anyVisible = false;
+    rows.forEach(r => {
+      if (!r.classList.contains("hidden")) anyVisible = true;
+    });
+
+    const shouldHide = anyVisible;
+
+    rows.forEach(r => {
+      if (shouldHide) {
+        r.classList.add("hidden");
+      } else {
+        r.classList.remove("hidden");
+      }
+    });
+
+    if (arrow) arrow.textContent = shouldHide ? "▶" : "▼";
+  }
+
+  function renderTeamBoard() {
+    el.teamBody.innerHTML = "";
+    el.teamDetailBody.innerHTML = "";
+    el.teamDetailWrapper.classList.add("hidden");
+
+    if (!personnel.length) {
+      el.teamTable.classList.add("hidden");
+      el.teamEmpty.classList.remove("hidden");
+      return;
+    }
+
+    const squadGroups = groupBy(
+      personnel,
+      p => [p.unit || "UNK", p.section || "UNK", p.squad || "UNK"].join("||")
+    );
+    const squadKeys = Array.from(squadGroups.keys()).sort((a, b) => a.localeCompare(b));
+
+    for (const key of squadKeys) {
+      const [unit, section, squad] = key.split("||");
+      const list = squadGroups.get(key);
+      const total = list.length;
+      const available = list.filter(p => p.flags.isAvailable).length;
+      const notAvail = total - available;
+      const ops = list.filter(p => p.flags.isCommittedCurrent || p.flags.isCommittedFuture).length;
+
+      const hasDriver = list.some(p =>
         isTrainedValue(p.full["HUMVEE LICENSE"]) ||
         isTrainedValue(p.full["JLTV LICENSE"])
       );
-
-      // TCCC: any tier
-      const tcccList = personnel.filter(p =>
+      const hasTccc = list.some(p =>
         isTrainedValue(p.full["TCCC TIER 1"]) ||
         isTrainedValue(p.full["TCCC TIER 2"]) ||
         isTrainedValue(p.full["TCCC TIER 3"]) ||
         isTrainedValue(p.full["TCCC TIER 4"])
       );
-
-      // Leadership courses
-      const ldrList = personnel.filter(p =>
+      const hasLeader = list.some(p =>
         isTrainedValue(p.full["CORPORALS COURSE"]) ||
         isTrainedValue(p.full["SERGEANT SCHOOL"])
       );
 
-      const drvPct  = Math.round((drvList.length  / total) * 100);
-      const tcccPct = Math.round((tcccList.length / total) * 100);
-      const ldrPct  = Math.round((ldrList.length  / total) * 100);
+      const hasMcenSUser  = list.some(p => isTrainedValue(p.full["MCEN-S USER"]));
+      const hasMcenNUser  = list.some(p => isTrainedValue(p.full["MCEN-N USER"]));
+      const hasMcenNAdmin = list.some(p => isTrainedValue(p.full["MCEN-N ADMIN"]));
+      const hasMcenSAdmin = list.some(p => isTrainedValue(p.full["MCEN-S ADMIN"]));
 
-      el.kpiDrvPctValue.textContent = drvPct + "%";
-      applyKpiColor(el.kpiDrvPctValue, drvPct);
-      el.kpiDrvCount.textContent = `${drvList.length} Marines`;
+      const hasTieNUser  = list.some(p => isTrainedValue(p.full["TIE-N USER"]));
+      const hasTieNUa    = list.some(p => isTrainedValue(p.full["TIE-N UA"]));
+      const hasTieNSa    = list.some(p => isTrainedValue(p.full["TIE-NS SA"]));
+      const hasTieSUser  = list.some(p => isTrainedValue(p.full["TIE-S USER"]));
+      const hasTieSUa    = list.some(p => isTrainedValue(p.full["TIE-S UA"]));
+      const hasTieSSa    = list.some(p => isTrainedValue(p.full["TIE-S SA"]));
+      const hasTieNsUser = list.some(p => isTrainedValue(p.full["TIE-NS USER"]));
+      const hasTieNsUa   = list.some(p => isTrainedValue(p.full["TIE-NS UA"]));
+      const hasTieNsSa   = list.some(p => isTrainedValue(p.full["TIE-NS SA"]));
+      const hasTieNNa    = list.some(p => isTrainedValue(p.full["TIE-N NA"]));
+      const hasTieSNa    = list.some(p => isTrainedValue(p.full["TIE-S NA"]));
+      const hasTieNaNa   = list.some(p => isTrainedValue(p.full["TIE-NA NA"]));
 
-      el.kpiTcccPctValue.textContent = tcccPct + "%";
-      applyKpiColor(el.kpiTcccPctValue, tcccPct);
-      el.kpiTcccCount.textContent = `${tcccList.length} Marines`;
-
-      el.kpiLdrPctValue.textContent = ldrPct + "%";
-      applyKpiColor(el.kpiLdrPctValue, ldrPct);
-      el.kpiLdrCount.textContent = `${ldrList.length} Marines`;
-
-      // other training boards
-      trainingFields.forEach(tf => {
-        const positives = personnel.filter(p => isTrainedValue(p.full[tf.col]));
-        const pct = Math.round((positives.length / total) * 100);
-
-        const pctEl   = document.getElementById(`kpi${tf.id}PctValue`);
-        const countEl = document.getElementById(`kpi${tf.id}Count`);
-
-        if (pctEl) {
-          pctEl.textContent = pct + "%";
-          applyKpiColor(pctEl, pct);
-        }
-
-        if (countEl) {
-          countEl.textContent = `${positives.length} Marines`;
-        }
-      });
-    }
-
-    function createNumberCell(value, clickable, payload) {
-      const td = document.createElement("td");
-      td.classList.add("numeric");
-      if (!clickable) {
-        td.textContent = value;
-        return td;
-      }
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${unit}</td>
+        <td>${section}</td>
+        <td></td>
+      `;
+      const squadTd = tr.children[2];
       const btn = document.createElement("button");
       btn.type = "button";
-      btn.className = "clickable-number";
-      btn.textContent = value;
-      Object.entries(payload).forEach(([k, v]) => btn.dataset[k] = String(v));
-      btn.addEventListener("click", () => handleNumberClick(btn));
-      td.appendChild(btn);
-      return td;
+      btn.className = "squad-btn";
+      btn.textContent = squad;
+      btn.addEventListener("click", () => showSquadTeams(unit, section, squad));
+      squadTd.appendChild(btn);
+
+      const payloadBase = { type: "squadAgg", unit, section, squad };
+      tr.appendChild(createNumberCell(total, total > 0, { ...payloadBase, key: "total" }));
+      tr.appendChild(createNumberCell(available, available > 0, { ...payloadBase, key: "available" }));
+      tr.appendChild(createNumberCell(notAvail, notAvail > 0, { ...payloadBase, key: "notAvailable" }));
+      tr.appendChild(createNumberCell(ops, ops > 0, { ...payloadBase, key: "ops" }));
+
+      const drvTd = document.createElement("td");
+      drvTd.innerHTML = `<span class="cap-chip ${hasDriver ? "on" : "off"}">DRV</span>`;
+      const tcccTd = document.createElement("td");
+      tcccTd.innerHTML = `<span class="cap-chip ${hasTccc ? "on" : "off"}">TCCC</span>`;
+      const ldrTd = document.createElement("td");
+      ldrTd.innerHTML = `<span class="cap-chip ${hasLeader ? "on" : "off"}">LDR</span>`;
+
+      const msuTd = document.createElement("td");
+      msuTd.innerHTML = `<span class="cap-chip ${hasMcenSUser ? "on" : "off"}">MS-U</span>`;
+      const mnuTd = document.createElement("td");
+      mnuTd.innerHTML = `<span class="cap-chip ${hasMcenNUser ? "on" : "off"}">MN-U</span>`;
+      const mnaTd = document.createElement("td");
+      mnaTd.innerHTML = `<span class="cap-chip ${hasMcenNAdmin ? "on" : "off"}">MN-A</span>`;
+      const msaTd = document.createElement("td");
+      msaTd.innerHTML = `<span class="cap-chip ${hasMcenSAdmin ? "on" : "off"}">MS-A</span>`;
+
+      const tnuTd = document.createElement("td");
+      tnuTd.innerHTML = `<span class="cap-chip ${hasTieNUser ? "on" : "off"}">TN-U</span>`;
+      const tnuUaTd = document.createElement("td");
+      tnuUaTd.innerHTML = `<span class="cap-chip ${hasTieNUa ? "on" : "off"}">TN-UA</span>`;
+      const tnuSaTd = document.createElement("td");
+      tnuSaTd.innerHTML = `<span class="cap-chip ${hasTieNSa ? "on" : "off"}">TN-SA</span>`;
+      const tsuTd = document.createElement("td");
+      tsuTd.innerHTML = `<span class="cap-chip ${hasTieSUser ? "on" : "off"}">TS-U</span>`;
+      const tsuUaTd = document.createElement("td");
+      tsuUaTd.innerHTML = `<span class="cap-chip ${hasTieSUa ? "on" : "off"}">TS-UA</span>`;
+      const tsuSaTd = document.createElement("td");
+      tsuSaTd.innerHTML = `<span class="cap-chip ${hasTieSSa ? "on" : "off"}">TS-SA</span>`;
+
+      const tnsuTd = document.createElement("td");
+      tnsuTd.innerHTML = `<span class="cap-chip ${hasTieNsUser ? "on" : "off"}">TNS-U</span>`;
+      const tnsUaTd = document.createElement("td");
+      tnsUaTd.innerHTML = `<span class="cap-chip ${hasTieNsUa ? "on" : "off"}">TNS-UA</span>`;
+      const tnsSaTd = document.createElement("td");
+      tnsSaTd.innerHTML = `<span class="cap-chip ${hasTieNsSa ? "on" : "off"}">TNS-SA</span>`;
+      const tnNaTd = document.createElement("td");
+      tnNaTd.innerHTML = `<span class="cap-chip ${hasTieNNa ? "on" : "off"}">TN-NA</span>`;
+      const tsNaTd = document.createElement("td");
+      tsNaTd.innerHTML = `<span class="cap-chip ${hasTieSNa ? "on" : "off"}">TS-NA</span>`;
+      const tnaNaTd = document.createElement("td");
+      tnaNaTd.innerHTML = `<span class="cap-chip ${hasTieNaNa ? "on" : "off"}">TNA-NA</span>`;
+
+      tr.appendChild(drvTd);
+      tr.appendChild(tcccTd);
+      tr.appendChild(ldrTd);
+      tr.appendChild(msuTd);
+      tr.appendChild(mnuTd);
+      tr.appendChild(mnaTd);
+      tr.appendChild(msaTd);
+      tr.appendChild(tnuTd);
+      tr.appendChild(tnuUaTd);
+      tr.appendChild(tnuSaTd);
+      tr.appendChild(tsuTd);
+      tr.appendChild(tsuUaTd);
+      tr.appendChild(tsuSaTd);
+      tr.appendChild(tnsuTd);
+      tr.appendChild(tnsUaTd);
+      tr.appendChild(tnsSaTd);
+      tr.appendChild(tnNaTd);
+      tr.appendChild(tsNaTd);
+      tr.appendChild(tnaNaTd);
+
+      el.teamBody.appendChild(tr);
     }
 
-    function renderMos() {
-      el.mosBody.innerHTML = "";
-      mosStats = [];
+    el.teamTable.classList.remove("hidden");
+    el.teamEmpty.classList.add("hidden");
+  }
 
-      if (!personnel.length) {
-        el.mosTable.classList.add("hidden");
-        el.mosEmpty.classList.remove("hidden");
-        return;
-      }
-      const groups = groupBy(personnel, p => p.mos || "UNK");
-      const keys = Array.from(groups.keys()).sort((a, b) => {
-        const na = parseInt(a, 10), nb = parseInt(b, 10);
-        if (!isNaN(na) && !isNaN(nb)) return na - nb;
-        return String(a).localeCompare(String(b));
-      });
-
-      for (const mos of keys) {
-        const list = groups.get(mos);
-        const total = list.length;
-        const available = list.filter(p => p.flags.isAvailable).length;
-        const leave = list.filter(p => p.flags.isLeave).length;
-        const tad = list.filter(p => p.flags.isTad).length;
-        const med = list.filter(p => p.flags.isMedical).length;
-        const currentOps = list.filter(p => p.flags.isCommittedCurrent).length;
-        const futureOps = list.filter(p => p.flags.isCommittedFuture).length;
-
-        mosStats.push({ mos, total });
-
-        const tr = document.createElement("tr");
-        const tdMos = document.createElement("td");
-        tdMos.textContent = mos;
-        tr.appendChild(tdMos);
-
-        tr.appendChild(createNumberCell(total, total > 0, { type: "mos", mos, key: "total" }));
-        tr.appendChild(createNumberCell(available, available > 0, { type: "mos", mos, key: "available" }));
-        tr.appendChild(createNumberCell(leave, leave > 0, { type: "mos", mos, key: "leave" }));
-        tr.appendChild(createNumberCell(tad, tad > 0, { type: "mos", mos, key: "tad" }));
-        tr.appendChild(createNumberCell(med, med > 0, { type: "mos", mos, key: "med" }));
-        tr.appendChild(createNumberCell(currentOps, currentOps > 0, { type: "mos", mos, key: "currentOps" }));
-        tr.appendChild(createNumberCell(futureOps, futureOps > 0, { type: "mos", mos, key: "futureOps" }));
-
-        el.mosBody.appendChild(tr);
-      }
-
-      el.mosTable.classList.remove("hidden");
-      el.mosEmpty.classList.add("hidden");
-    }
-
-    function renderUnitTable() {
-      el.unitBody.innerHTML = "";
-      el.unitDetailBody.innerHTML = "";
-      el.unitDetailWrapper.classList.add("hidden");
-
-      if (!personnel.length) {
-        el.unitTable.classList.add("hidden");
-        el.unitEmpty.classList.remove("hidden");
-        return;
-      }
-
-      const groups = groupBy(personnel, p => p.unit || "UNK");
-      const units = Array.from(groups.keys()).sort((a, b) => a.localeCompare(b));
-
-      for (const unit of units) {
-        const list = groups.get(unit);
-        const total = list.length;
-        const available = list.filter(p => p.flags.isAvailable).length;
-        const notAvail = total - available;
-        const ops = list.filter(p => p.flags.isCommittedCurrent || p.flags.isCommittedFuture).length;
-
-        const tr = document.createElement("tr");
-
-        const tdUnit = document.createElement("td");
-        tdUnit.classList.add("unit-cell");
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "unit-btn";
-        btn.textContent = unit;
-        btn.addEventListener("click", () => showUnitBreakdown(unit));
-        tdUnit.appendChild(btn);
-        tr.appendChild(tdUnit);
-
-        tr.appendChild(createNumberCell(total, total > 0, { type: "unitAgg", unit, key: "total" }));
-        tr.appendChild(createNumberCell(available, available > 0, { type: "unitAgg", unit, key: "available" }));
-        tr.appendChild(createNumberCell(notAvail, notAvail > 0, { type: "unitAgg", unit, key: "notAvailable" }));
-        tr.appendChild(createNumberCell(ops, ops > 0, { type: "unitAgg", unit, key: "ops" }));
-
-        el.unitBody.appendChild(tr);
-      }
-
-      el.unitTable.classList.remove("hidden");
-      el.unitEmpty.classList.add("hidden");
-    }
-
-    function showUnitBreakdown(unit) {
-      const list = personnel.filter(p => (p.unit || "UNK") === unit);
-      el.unitDetailBody.innerHTML = "";
-      if (!list.length) {
-        el.unitDetailWrapper.classList.add("hidden");
-        return;
-      }
-      el.unitBreakTitle.textContent = `Unit: ${unit}`;
-      el.unitDetailWrapper.classList.remove("hidden");
-
-      const groups = groupBy(list, p =>
-        [p.section || "UNK", p.squad || "UNK", p.team || "UNK"].join("||")
-      );
-      const keys = Array.from(groups.keys()).sort((a, b) => a.localeCompare(b));
-
-      for (const key of keys) {
-        const [section, squad, team] = key.split("||");
-        const seg = groups.get(key);
-        const total = seg.length;
-        const available = seg.filter(p => p.flags.isAvailable).length;
-        const notAvail = total - available;
-        const ops = seg.filter(p => p.flags.isCommittedCurrent || p.flags.isCommittedFuture).length;
-
-        const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${section}</td><td>${squad}</td><td>${team}</td>`;
-        const basePayload = { type: "unitElem", unit, section, squad, team };
-        tr.appendChild(createNumberCell(total, total > 0, { ...basePayload, key: "total" }));
-        tr.appendChild(createNumberCell(available, available > 0, { ...basePayload, key: "available" }));
-        tr.appendChild(createNumberCell(notAvail, notAvail > 0, { ...basePayload, key: "notAvailable" }));
-        tr.appendChild(createNumberCell(ops, ops > 0, { ...basePayload, key: "ops" }));
-        el.unitDetailBody.appendChild(tr);
-      }
-    }
-
-    function renderFullMatrix() {
-      el.fullBody.innerHTML = "";
-      el.fullHeaderRow.innerHTML = "";
-      if (!personnel.length) {
-        el.fullTable.classList.add("hidden");
-        el.fullEmpty.classList.remove("hidden");
-        return;
-      }
-
-      fullColumns.forEach(col => {
-        const th = document.createElement("th");
-        th.textContent = col;
-        el.fullHeaderRow.appendChild(th);
-      });
-
-      const groups = groupBy(personnel, p => p.unit || "UNK");
-      const units = Array.from(groups.keys()).sort((a, b) => a.localeCompare(b));
-
-      for (const unit of units) {
-        const unitList = groups.get(unit).slice().sort((a, b) => {
-          const ln = a.lastName.localeCompare(b.lastName);
-          if (ln !== 0) return ln;
-          return a.firstName.localeCompare(b.firstName);
-        });
-
-        const unitRow = document.createElement("tr");
-        unitRow.className = "matrix-unit-row";
-        unitRow.dataset.unit = unit;
-
-        const tdUnit = document.createElement("td");
-        tdUnit.colSpan = fullColumns.length;
-        const arrowSpan = document.createElement("span");
-        arrowSpan.className = "matrix-unit-toggle";
-        arrowSpan.dataset.arrowFor = unit;
-        arrowSpan.textContent = "▶";
-        tdUnit.appendChild(arrowSpan);
-        const labelSpan = document.createElement("span");
-        labelSpan.textContent = ` ${unit}  (${unitList.length} Marines)`;
-        tdUnit.appendChild(labelSpan);
-        unitRow.appendChild(tdUnit);
-
-        unitRow.addEventListener("click", () => toggleUnitGroup(unit));
-
-        el.fullBody.appendChild(unitRow);
-
-        for (const p of unitList) {
-          const tr = document.createElement("tr");
-          tr.className = "unit-member-row hidden";
-          tr.dataset.unit = unit;
-
-          for (const col of fullColumns) {
-            const td = document.createElement("td");
-            let val = "";
-
-            if (p.full && Object.prototype.hasOwnProperty.call(p.full, col)) {
-              val = p.full[col] || "";
-            }
-
-            if (!val) {
-              switch (col) {
-                case "UNIT": val = p.unit; break;
-                case "Rank": val = p.rank; break;
-                case "Last Name": val = p.lastName; break;
-                case "First Name": val = p.firstName; break;
-                case "EDIPI": val = p.edipi; break;
-                case "Email": val = p.email; break;
-                case "MOS": val = p.mos; break;
-                case "Status": val = p.statusRaw; break;
-                case "Status Start": val = p.statusStart; break;
-                case "Status End Date": val = p.statusEnd; break;
-                case "Section": val = p.section; break;
-                case "Squad": val = p.squad; break;
-                case "Team": val = p.team; break;
-                case "Current Operation": val = p.currentOp; break;
-                case "Current Operation : Start Time": val = p.currentOpStart; break;
-                case "Current Operation : End Time": val = p.currentOpEnd; break;
-                case "Future Operation": val = p.futureOp; break;
-                case "Future Operation: Start Time": val = p.futureOpStart; break;
-                case "Future Operation: End Time": val = p.futureOpEnd; break;
-              }
-            }
-
-            td.textContent = val;
-            tr.appendChild(td);
-          }
-          el.fullBody.appendChild(tr);
-        }
-      }
-
-      el.fullTable.classList.remove("hidden");
-      el.fullEmpty.classList.add("hidden");
-    }
-
-    function toggleUnitGroup(unit) {
-      const rows = el.fullBody.querySelectorAll(`tr.unit-member-row[data-unit="${unit}"]`);
-      const arrow = el.fullBody.querySelector(`span.matrix-unit-toggle[data-arrow-for="${unit}"]`);
-      let anyVisible = false;
-      rows.forEach(r => {
-        if (!r.classList.contains("hidden")) anyVisible = true;
-      });
-      const shouldHide = anyVisible;
-      rows.forEach(r => {
-        if (shouldHide) {
-          r.classList.add("hidden");
-        } else {
-          r.classList.remove("hidden");
-        }
-      });
-      if (arrow) arrow.textContent = shouldHide ? "▶" : "▼";
-    }
-
-    function renderTeamBoard() {
-      el.teamBody.innerHTML = "";
-      el.teamDetailBody.innerHTML = "";
+  function showSquadTeams(unit, section, squad) {
+    const list = personnel.filter(p =>
+      (p.unit || "UNK") === unit &&
+      (p.section || "UNK") === section &&
+      (p.squad || "UNK") === squad
+    );
+    el.teamDetailBody.innerHTML = "";
+    if (!list.length) {
       el.teamDetailWrapper.classList.add("hidden");
-
-      if (!personnel.length) {
-        el.teamTable.classList.add("hidden");
-        el.teamEmpty.classList.remove("hidden");
-        return;
-      }
-
-      const squadGroups = groupBy(
-        personnel,
-        p => [p.unit || "UNK", p.section || "UNK", p.squad || "UNK"].join("||")
-      );
-      const squadKeys = Array.from(squadGroups.keys()).sort((a, b) => a.localeCompare(b));
-
-      for (const key of squadKeys) {
-        const [unit, section, squad] = key.split("||");
-        const list = squadGroups.get(key);
-        const total = list.length;
-        const available = list.filter(p => p.flags.isAvailable).length;
-        const notAvail = total - available;
-        const ops = list.filter(p => p.flags.isCommittedCurrent || p.flags.isCommittedFuture).length;
-
-        const hasDriver = list.some(p =>
-          isTrainedValue(p.full["HUMVEE LICENSE"]) ||
-          isTrainedValue(p.full["JLTV LICENSE"])
-        );
-        const hasTccc = list.some(p =>
-          isTrainedValue(p.full["TCCC TIER 1"]) ||
-          isTrainedValue(p.full["TCCC TIER 2"]) ||
-          isTrainedValue(p.full["TCCC TIER 3"]) ||
-          isTrainedValue(p.full["TCCC TIER 4"])
-        );
-        const hasLeader = list.some(p =>
-          isTrainedValue(p.full["CORPORALS COURSE"]) ||
-          isTrainedValue(p.full["SERGEANT SCHOOL"])
-        );
-
-    const hasMcenSUser  = list.some(p => hasActiveAccount(p.full["MCEN-S USER"]));
-const hasMcenNUser  = list.some(p => hasActiveAccount(p.full["MCEN-N USER"]));
-const hasMcenNAdmin = list.some(p => hasActiveAccount(p.full["MCEN-N ADMIN"]));
-const hasMcenSAdmin = list.some(p => hasActiveAccount(p.full["MCEN-S ADMIN"]));
-
-const hasTieNUser  = list.some(p => hasActiveAccount(p.full["TIE-N USER"]));
-const hasTieNUa    = list.some(p => hasActiveAccount(p.full["TIE-N UA"]));
-const hasTieNSa    = list.some(p => hasActiveAccount(p.full["TIE-NS SA"]));
-const hasTieSUser  = list.some(p => hasActiveAccount(p.full["TIE-S USER"]));
-const hasTieSUa    = list.some(p => hasActiveAccount(p.full["TIE-S UA"]));
-const hasTieSSa    = list.some(p => hasActiveAccount(p.full["TIE-S SA"]));
-const hasTieNsUser = list.some(p => hasActiveAccount(p.full["TIE-NS USER"]));
-const hasTieNsUa   = list.some(p => hasActiveAccount(p.full["TIE-NS UA"]));
-const hasTieNsSa   = list.some(p => hasActiveAccount(p.full["TIE-NS SA"]));
-const hasTieNNa    = list.some(p => hasActiveAccount(p.full["TIE-N NA"]));
-const hasTieSNa    = list.some(p => hasActiveAccount(p.full["TIE-S NA"]));
-const hasTieNaNa   = list.some(p => hasActiveAccount(p.full["TIE-NA NA"]));
-
-
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${unit}</td>
-          <td>${section}</td>
-          <td></td>
-        `;
-        const squadTd = tr.children[2];
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "squad-btn";
-        btn.textContent = squad;
-        btn.addEventListener("click", () => showSquadTeams(unit, section, squad));
-        squadTd.appendChild(btn);
-
-        const payloadBase = { type: "squadAgg", unit, section, squad };
-        tr.appendChild(createNumberCell(total, total > 0, { ...payloadBase, key: "total" }));
-        tr.appendChild(createNumberCell(available, available > 0, { ...payloadBase, key: "available" }));
-        tr.appendChild(createNumberCell(notAvail, notAvail > 0, { ...payloadBase, key: "notAvailable" }));
-        tr.appendChild(createNumberCell(ops, ops > 0, { ...payloadBase, key: "ops" }));
-
-        const drvTd = document.createElement("td");
-        drvTd.innerHTML = `<span class="cap-chip ${hasDriver ? "on" : "off"}">DRV</span>`;
-        const tcccTd = document.createElement("td");
-        tcccTd.innerHTML = `<span class="cap-chip ${hasTccc ? "on" : "off"}">TCCC</span>`;
-        const ldrTd = document.createElement("td");
-        ldrTd.innerHTML = `<span class="cap-chip ${hasLeader ? "on" : "off"}">LDR</span>`;
-
-        const msuTd = document.createElement("td");
-        msuTd.innerHTML = `<span class="cap-chip ${hasMcenSUser ? "on" : "off"}">MS-U</span>`;
-        const mnuTd = document.createElement("td");
-        mnuTd.innerHTML = `<span class="cap-chip ${hasMcenNUser ? "on" : "off"}">MN-U</span>`;
-        const mnaTd = document.createElement("td");
-        mnaTd.innerHTML = `<span class="cap-chip ${hasMcenNAdmin ? "on" : "off"}">MN-A</span>`;
-        const msaTd = document.createElement("td");
-        msaTd.innerHTML = `<span class="cap-chip ${hasMcenSAdmin ? "on" : "off"}">MS-A</span>`;
-
-        const tnuTd = document.createElement("td");
-        tnuTd.innerHTML = `<span class="cap-chip ${hasTieNUser ? "on" : "off"}">TN-U</span>`;
-        const tnuUaTd = document.createElement("td");
-        tnuUaTd.innerHTML = `<span class="cap-chip ${hasTieNUa ? "on" : "off"}">TN-UA</span>`;
-        const tnuSaTd = document.createElement("td");
-        tnuSaTd.innerHTML = `<span class="cap-chip ${hasTieNSa ? "on" : "off"}">TN-SA</span>`;
-        const tsuTd = document.createElement("td");
-        tsuTd.innerHTML = `<span class="cap-chip ${hasTieSUser ? "on" : "off"}">TS-U</span>`;
-        const tsuUaTd = document.createElement("td");
-        tsuUaTd.innerHTML = `<span class="cap-chip ${hasTieSUa ? "on" : "off"}">TS-UA</span>`;
-        const tsuSaTd = document.createElement("td");
-        tsuSaTd.innerHTML = `<span class="cap-chip ${hasTieSSa ? "on" : "off"}">TS-SA</span>`;
-
-        const tnsuTd = document.createElement("td");
-        tnsuTd.innerHTML = `<span class="cap-chip ${hasTieNsUser ? "on" : "off"}">TNS-U</span>`;
-        const tnsUaTd = document.createElement("td");
-        tnsUaTd.innerHTML = `<span class="cap-chip ${hasTieNsUa ? "on" : "off"}">TNS-UA</span>`;
-        const tnsSaTd = document.createElement("td");
-        tnsSaTd.innerHTML = `<span class="cap-chip ${hasTieNsSa ? "on" : "off"}">TNS-SA</span>`;
-        const tnNaTd = document.createElement("td");
-        tnNaTd.innerHTML = `<span class="cap-chip ${hasTieNNa ? "on" : "off"}">TN-NA</span>`;
-        const tsNaTd = document.createElement("td");
-        tsNaTd.innerHTML = `<span class="cap-chip ${hasTieSNa ? "on" : "off"}">TS-NA</span>`;
-        const tnaNaTd = document.createElement("td");
-        tnaNaTd.innerHTML = `<span class="cap-chip ${hasTieNaNa ? "on" : "off"}">TNA-NA</span>`;
-
-        tr.appendChild(drvTd);
-        tr.appendChild(tcccTd);
-        tr.appendChild(ldrTd);
-        tr.appendChild(msuTd);
-        tr.appendChild(mnuTd);
-        tr.appendChild(mnaTd);
-        tr.appendChild(msaTd);
-        tr.appendChild(tnuTd);
-        tr.appendChild(tnuUaTd);
-        tr.appendChild(tnuSaTd);
-        tr.appendChild(tsuTd);
-        tr.appendChild(tsuUaTd);
-        tr.appendChild(tsuSaTd);
-        tr.appendChild(tnsuTd);
-        tr.appendChild(tnsUaTd);
-        tr.appendChild(tnsSaTd);
-        tr.appendChild(tnNaTd);
-        tr.appendChild(tsNaTd);
-        tr.appendChild(tnaNaTd);
-
-        el.teamBody.appendChild(tr);
-      }
-
-      el.teamTable.classList.remove("hidden");
-      el.teamEmpty.classList.add("hidden");
+      return;
     }
+    el.teamBreakTitle.textContent = `Squad: ${unit} / ${section} / ${squad}`;
+    el.teamDetailWrapper.classList.remove("hidden");
 
-    function showSquadTeams(unit, section, squad) {
-      const list = personnel.filter(p =>
+    const groups = groupBy(
+      list,
+      p => p.team || "UNK"
+    );
+    const keys = Array.from(groups.keys()).sort((a, b) => a.localeCompare(b));
+
+    for (const team of keys) {
+      const seg = groups.get(team);
+      const total = seg.length;
+      const available = seg.filter(p => p.flags.isAvailable).length;
+      const notAvail = total - available;
+      const ops = seg.filter(p => p.flags.isCommittedCurrent || p.flags.isCommittedFuture).length;
+
+      const hasDriver = seg.some(p =>
+        isTrainedValue(p.full["HUMVEE LICENSE"]) ||
+        isTrainedValue(p.full["JLTV LICENSE"])
+      );
+      const hasTccc = seg.some(p =>
+        isTrainedValue(p.full["TCCC TIER 1"]) ||
+        isTrainedValue(p.full["TCCC TIER 2"]) ||
+        isTrainedValue(p.full["TCCC TIER 3"]) ||
+        isTrainedValue(p.full["TCCC TIER 4"])
+      );
+      const hasLeader = seg.some(p =>
+        isTrainedValue(p.full["CORPORALS COURSE"]) ||
+        isTrainedValue(p.full["SERGEANT SCHOOL"])
+      );
+
+      const hasMcenSUser  = seg.some(p => isTrainedValue(p.full["MCEN-S USER"]));
+      const hasMcenNUser  = seg.some(p => isTrainedValue(p.full["MCEN-N USER"]));
+      const hasMcenNAdmin = seg.some(p => isTrainedValue(p.full["MCEN-N ADMIN"]));
+      const hasMcenSAdmin = seg.some(p => isTrainedValue(p.full["MCEN-S ADMIN"]));
+
+      const hasTieNUser  = seg.some(p => isTrainedValue(p.full["TIE-N USER"]));
+      const hasTieNUa    = seg.some(p => isTrainedValue(p.full["TIE-N UA"]));
+      const hasTieNSa    = seg.some(p => isTrainedValue(p.full["TIE-NS SA"]));
+      const hasTieSUser  = seg.some(p => isTrainedValue(p.full["TIE-S USER"]));
+      const hasTieSUa    = seg.some(p => isTrainedValue(p.full["TIE-S UA"]));
+      const hasTieSSa    = seg.some(p => isTrainedValue(p.full["TIE-S SA"]));
+      const hasTieNsUser = seg.some(p => isTrainedValue(p.full["TIE-NS USER"]));
+      const hasTieNsUa   = seg.some(p => isTrainedValue(p.full["TIE-NS UA"]));
+      const hasTieNsSa   = seg.some(p => isTrainedValue(p.full["TIE-NS SA"]));
+      const hasTieNNa    = seg.some(p => isTrainedValue(p.full["TIE-N NA"]));
+      const hasTieSNa    = seg.some(p => isTrainedValue(p.full["TIE-S NA"]));
+      const hasTieNaNa   = seg.some(p => isTrainedValue(p.full["TIE-NA NA"]));
+
+      const tr = document.createElement("tr");
+      const payloadBase = { type: "unitElem", unit, section, squad, team };
+
+      tr.innerHTML = `<td>${team}</td>`;
+      tr.appendChild(createNumberCell(total, total > 0, { ...payloadBase, key: "total" }));
+      tr.appendChild(createNumberCell(available, available > 0, { ...payloadBase, key: "available" }));
+      tr.appendChild(createNumberCell(notAvail, notAvail > 0, { ...payloadBase, key: "notAvailable" }));
+      tr.appendChild(createNumberCell(ops, ops > 0, { ...payloadBase, key: "ops" }));
+
+      const drvTd = document.createElement("td");
+      drvTd.innerHTML = `<span class="cap-chip ${hasDriver ? "on" : "off"}">DRV</span>`;
+      const tcccTd = document.createElement("td");
+      tcccTd.innerHTML = `<span class="cap-chip ${hasTccc ? "on" : "off"}">TCCC</span>`;
+      const ldrTd = document.createElement("td");
+      ldrTd.innerHTML = `<span class="cap-chip ${hasLeader ? "on" : "off"}">LDR</span>`;
+
+      const msuTd = document.createElement("td");
+      msuTd.innerHTML = `<span class="cap-chip ${hasMcenSUser ? "on" : "off"}">MS-U</span>`;
+      const mnuTd = document.createElement("td");
+      mnuTd.innerHTML = `<span class="cap-chip ${hasMcenNUser ? "on" : "off"}">MN-U</span>`;
+      const mnaTd = document.createElement("td");
+      mnaTd.innerHTML = `<span class="cap-chip ${hasMcenNAdmin ? "on" : "off"}">MN-A</span>`;
+      const msaTd = document.createElement("td");
+      msaTd.innerHTML = `<span class="cap-chip ${hasMcenSAdmin ? "on" : "off"}">MS-A</span>`;
+
+      const tnuTd = document.createElement("td");
+      tnuTd.innerHTML = `<span class="cap-chip ${hasTieNUser ? "on" : "off"}">TN-U</span>`;
+      const tnuUaTd = document.createElement("td");
+      tnuUaTd.innerHTML = `<span class="cap-chip ${hasTieNUa ? "on" : "off"}">TN-UA</span>`;
+      const tnuSaTd = document.createElement("td");
+      tnuSaTd.innerHTML = `<span class="cap-chip ${hasTieNSa ? "on" : "off"}">TN-SA</span>`;
+      const tsuTd = document.createElement("td");
+      tsuTd.innerHTML = `<span class="cap-chip ${hasTieSUser ? "on" : "off"}">TS-U</span>`;
+      const tsuUaTd = document.createElement("td");
+      tsuUaTd.innerHTML = `<span class="cap-chip ${hasTieSUa ? "on" : "off"}">TS-UA</span>`;
+      const tsuSaTd = document.createElement("td");
+      tsuSaTd.innerHTML = `<span class="cap-chip ${hasTieSSa ? "on" : "off"}">TS-SA</span>`;
+
+      const tnsuTd = document.createElement("td");
+      tnsuTd.innerHTML = `<span class="cap-chip ${hasTieNsUser ? "on" : "off"}">TNS-U</span>`;
+      const tnsUaTd = document.createElement("td");
+      tnsUaTd.innerHTML = `<span class="cap-chip ${hasTieNsUa ? "on" : "off"}">TNS-UA</span>`;
+      const tnsSaTd = document.createElement("td");
+      tnsSaTd.innerHTML = `<span class="cap-chip ${hasTieNsSa ? "on" : "off"}">TNS-SA</span>`;
+      const tnNaTd = document.createElement("td");
+      tnNaTd.innerHTML = `<span class="cap-chip ${hasTieNNa ? "on" : "off"}">TN-NA</span>`;
+      const tsNaTd = document.createElement("td");
+      tsNaTd.innerHTML = `<span class="cap-chip ${hasTieSNa ? "on" : "off"}">TS-NA</span>`;
+      const tnaNaTd = document.createElement("td");
+      tnaNaTd.innerHTML = `<span class="cap-chip ${hasTieNaNa ? "on" : "off"}">TNA-NA</span>`;
+
+      tr.appendChild(drvTd);
+      tr.appendChild(tcccTd);
+      tr.appendChild(ldrTd);
+      tr.appendChild(msuTd);
+      tr.appendChild(mnuTd);
+      tr.appendChild(mnaTd);
+      tr.appendChild(msaTd);
+      tr.appendChild(tnuTd);
+      tr.appendChild(tnuUaTd);
+      tr.appendChild(tnuSaTd);
+      tr.appendChild(tsuTd);
+      tr.appendChild(tsuUaTd);
+      tr.appendChild(tsuSaTd);
+      tr.appendChild(tnsuTd);
+      tr.appendChild(tnsUaTd);
+      tr.appendChild(tnsSaTd);
+      tr.appendChild(tnNaTd);
+      tr.appendChild(tsNaTd);
+      tr.appendChild(tnaNaTd);
+
+      el.teamDetailBody.appendChild(tr);
+    }
+  }
+
+  function handleNumberClick(btn) {
+    const ds = btn.dataset;
+    const type = ds.type;
+    let list = [];
+    let title = "";
+    let subtitle = "";
+
+    if (type === "mos") {
+      const mos = ds.mos;
+      list = personnel.filter(p => (p.mos || "UNK") === mos);
+      title = `MOS ${mos}`;
+      switch (ds.key) {
+        case "available":
+          list = list.filter(p => p.flags.isAvailable);
+          subtitle = "Available (Present for Duty / On Hand).";
+          break;
+        case "leave":
+          list = list.filter(p => p.flags.isLeave);
+          subtitle = "Status: Leave.";
+          break;
+        case "tad":
+          list = list.filter(p => p.flags.isTad);
+          subtitle = "Status: TAD.";
+          break;
+        case "med":
+          list = list.filter(p => p.flags.isMedical);
+          subtitle = "Medical / Light / Limited duty.";
+          break;
+        case "currentOps":
+          list = list.filter(p => p.flags.isCommittedCurrent);
+          subtitle = "Committed to current operations.";
+          break;
+        case "futureOps":
+          list = list.filter(p => p.flags.isCommittedFuture);
+          subtitle = "Committed to future operations.";
+          break;
+        default:
+          subtitle = "All Marines within MOS.";
+      }
+    } else if (type === "unitAgg") {
+      const unit = ds.unit;
+      list = personnel.filter(p => (p.unit || "UNK") === unit);
+      title = `Unit: ${unit}`;
+      switch (ds.key) {
+        case "available":
+          list = list.filter(p => p.flags.isAvailable);
+          subtitle = "Available Marines in this unit.";
+          break;
+        case "notAvailable":
+          list = list.filter(p => !p.flags.isAvailable);
+          subtitle = "Not available in this unit.";
+          break;
+        case "ops":
+          list = list.filter(p => p.flags.isCommittedCurrent || p.flags.isCommittedFuture);
+          subtitle = "Committed to operations in this unit.";
+          break;
+        default:
+          subtitle = "All Marines in this unit.";
+      }
+    } else if (type === "unitElem" || type === "squadAgg") {
+      const { unit, section, squad, team, key } = ds;
+      list = personnel.filter(p =>
         (p.unit || "UNK") === unit &&
-        (p.section || "UNK") === section &&
-        (p.squad || "UNK") === squad
+        (section ? (p.section || "UNK") === section : true) &&
+        (squad ? (p.squad || "UNK") === squad : true) &&
+        (team ? (p.team || "UNK") === team : true)
       );
-      el.teamDetailBody.innerHTML = "";
-      if (!list.length) {
-        el.teamDetailWrapper.classList.add("hidden");
-        return;
-      }
-      el.teamBreakTitle.textContent = `Squad: ${unit} / ${section} / ${squad}`;
-      el.teamDetailWrapper.classList.remove("hidden");
-
-      const groups = groupBy(
-        list,
-        p => p.team || "UNK"
-      );
-      const keys = Array.from(groups.keys()).sort((a, b) => a.localeCompare(b));
-
-      for (const team of keys) {
-        const seg = groups.get(team);
-        const total = seg.length;
-        const available = seg.filter(p => p.flags.isAvailable).length;
-        const notAvail = total - available;
-        const ops = seg.filter(p => p.flags.isCommittedCurrent || p.flags.isCommittedFuture).length;
-
-        const hasDriver = seg.some(p =>
-          isTrainedValue(p.full["HUMVEE LICENSE"]) ||
-          isTrainedValue(p.full["JLTV LICENSE"])
-        );
-        const hasTccc = seg.some(p =>
-          isTrainedValue(p.full["TCCC TIER 1"]) ||
-          isTrainedValue(p.full["TCCC TIER 2"]) ||
-          isTrainedValue(p.full["TCCC TIER 3"]) ||
-          isTrainedValue(p.full["TCCC TIER 4"])
-        );
-        const hasLeader = seg.some(p =>
-          isTrainedValue(p.full["CORPORALS COURSE"]) ||
-          isTrainedValue(p.full["SERGEANT SCHOOL"])
-        );
-
-    const hasMcenSUser  = seg.some(p => hasActiveAccount(p.full["MCEN-S USER"]));
-const hasMcenNUser  = seg.some(p => hasActiveAccount(p.full["MCEN-N USER"]));
-const hasMcenNAdmin = seg.some(p => hasActiveAccount(p.full["MCEN-N ADMIN"]));
-const hasMcenSAdmin = seg.some(p => hasActiveAccount(p.full["MCEN-S ADMIN"]));
-
-const hasTieNUser  = seg.some(p => hasActiveAccount(p.full["TIE-N USER"]));
-const hasTieNUa    = seg.some(p => hasActiveAccount(p.full["TIE-N UA"]));
-const hasTieNSa    = seg.some(p => hasActiveAccount(p.full["TIE-NS SA"]));
-const hasTieSUser  = seg.some(p => hasActiveAccount(p.full["TIE-S USER"]));
-const hasTieSUa    = seg.some(p => hasActiveAccount(p.full["TIE-S UA"]));
-const hasTieSSa    = seg.some(p => hasActiveAccount(p.full["TIE-S SA"]));
-const hasTieNsUser = seg.some(p => hasActiveAccount(p.full["TIE-NS USER"]));
-const hasTieNsUa   = seg.some(p => hasActiveAccount(p.full["TIE-NS UA"]));
-const hasTieNsSa   = seg.some(p => hasActiveAccount(p.full["TIE-NS SA"]));
-const hasTieNNa    = seg.some(p => hasActiveAccount(p.full["TIE-N NA"]));
-const hasTieSNa    = seg.some(p => hasActiveAccount(p.full["TIE-S NA"]));
-const hasTieNaNa   = seg.some(p => hasActiveAccount(p.full["TIE-NA NA"]));
-
-
-        const tr = document.createElement("tr");
-        const payloadBase = { type: "unitElem", unit, section, squad, team };
-
-        tr.innerHTML = `<td>${team}</td>`;
-        tr.appendChild(createNumberCell(total, total > 0, { ...payloadBase, key: "total" }));
-        tr.appendChild(createNumberCell(available, available > 0, { ...payloadBase, key: "available" }));
-        tr.appendChild(createNumberCell(notAvail, notAvail > 0, { ...payloadBase, key: "notAvailable" }));
-        tr.appendChild(createNumberCell(ops, ops > 0, { ...payloadBase, key: "ops" }));
-
-        const drvTd = document.createElement("td");
-        drvTd.innerHTML = `<span class="cap-chip ${hasDriver ? "on" : "off"}">DRV</span>`;
-        const tcccTd = document.createElement("td");
-        tcccTd.innerHTML = `<span class="cap-chip ${hasTccc ? "on" : "off"}">TCCC</span>`;
-        const ldrTd = document.createElement("td");
-        ldrTd.innerHTML = `<span class="cap-chip ${hasLeader ? "on" : "off"}">LDR</span>`;
-
-        const msuTd = document.createElement("td");
-        msuTd.innerHTML = `<span class="cap-chip ${hasMcenSUser ? "on" : "off"}">MS-U</span>`;
-        const mnuTd = document.createElement("td");
-        mnuTd.innerHTML = `<span class="cap-chip ${hasMcenNUser ? "on" : "off"}">MN-U</span>`;
-        const mnaTd = document.createElement("td");
-        mnaTd.innerHTML = `<span class="cap-chip ${hasMcenNAdmin ? "on" : "off"}">MN-A</span>`;
-        const msaTd = document.createElement("td");
-        msaTd.innerHTML = `<span class="cap-chip ${hasMcenSAdmin ? "on" : "off"}">MS-A</span>`;
-
-        const tnuTd = document.createElement("td");
-        tnuTd.innerHTML = `<span class="cap-chip ${hasTieNUser ? "on" : "off"}">TN-U</span>`;
-        const tnuUaTd = document.createElement("td");
-        tnuUaTd.innerHTML = `<span class="cap-chip ${hasTieNUa ? "on" : "off"}">TN-UA</span>`;
-        const tnuSaTd = document.createElement("td");
-        tnuSaTd.innerHTML = `<span class="cap-chip ${hasTieNSa ? "on" : "off"}">TN-SA</span>`;
-        const tsuTd = document.createElement("td");
-        tsuTd.innerHTML = `<span class="cap-chip ${hasTieSUser ? "on" : "off"}">TS-U</span>`;
-        const tsuUaTd = document.createElement("td");
-        tsuUaTd.innerHTML = `<span class="cap-chip ${hasTieSUa ? "on" : "off"}">TS-UA</span>`;
-        const tsuSaTd = document.createElement("td");
-        tsuSaTd.innerHTML = `<span class="cap-chip ${hasTieSSa ? "on" : "off"}">TS-SA</span>`;
-
-        const tnsuTd = document.createElement("td");
-        tnsuTd.innerHTML = `<span class="cap-chip ${hasTieNsUser ? "on" : "off"}">TNS-U</span>`;
-        const tnsUaTd = document.createElement("td");
-        tnsUaTd.innerHTML = `<span class="cap-chip ${hasTieNsUa ? "on" : "off"}">TNS-UA</span>`;
-        const tnsSaTd = document.createElement("td");
-        tnsSaTd.innerHTML = `<span class="cap-chip ${hasTieNsSa ? "on" : "off"}">TNS-SA</span>`;
-        const tnNaTd = document.createElement("td");
-        tnNaTd.innerHTML = `<span class="cap-chip ${hasTieNNa ? "on" : "off"}">TN-NA</span>`;
-        const tsNaTd = document.createElement("td");
-        tsNaTd.innerHTML = `<span class="cap-chip ${hasTieSNa ? "on" : "off"}">TS-NA</span>`;
-        const tnaNaTd = document.createElement("td");
-        tnaNaTd.innerHTML = `<span class="cap-chip ${hasTieNaNa ? "on" : "off"}">TNA-NA</span>`;
-
-        tr.appendChild(drvTd);
-        tr.appendChild(tcccTd);
-        tr.appendChild(ldrTd);
-        tr.appendChild(msuTd);
-        tr.appendChild(mnuTd);
-        tr.appendChild(mnaTd);
-        tr.appendChild(msaTd);
-        tr.appendChild(tnuTd);
-        tr.appendChild(tnuUaTd);
-        tr.appendChild(tnuSaTd);
-        tr.appendChild(tsuTd);
-        tr.appendChild(tsuUaTd);
-        tr.appendChild(tsuSaTd);
-        tr.appendChild(tnsuTd);
-        tr.appendChild(tnsUaTd);
-        tr.appendChild(tnsSaTd);
-        tr.appendChild(tnNaTd);
-        tr.appendChild(tsNaTd);
-        tr.appendChild(tnaNaTd);
-
-        el.teamDetailBody.appendChild(tr);
+      title = `Element: ${unit}${section ? " / " + section : ""}${squad ? " / " + squad : ""}${team ? " / " + team : ""}`;
+      switch (key) {
+        case "available":
+          list = list.filter(p => p.flags.isAvailable);
+          subtitle = "Available in this element.";
+          break;
+        case "notAvailable":
+          list = list.filter(p => !p.flags.isAvailable);
+          subtitle = "Not available in this element.";
+          break;
+        case "ops":
+          list = list.filter(p => p.flags.isCommittedCurrent || p.flags.isCommittedFuture);
+          subtitle = "Committed to operations in this element.";
+          break;
+        default:
+          subtitle = "All Marines in this element.";
       }
     }
 
-    function handleNumberClick(btn) {
-      const ds = btn.dataset;
-      const type = ds.type;
-      let list = [];
-      let title = "";
-      let subtitle = "";
+    openDetailModal(title, subtitle, list);
+  }
 
-      if (type === "mos") {
-        const mos = ds.mos;
-        list = personnel.filter(p => (p.mos || "UNK") === mos);
-        title = `MOS ${mos}`;
-        switch (ds.key) {
-          case "available":
-            list = list.filter(p => p.flags.isAvailable);
-            subtitle = "Available (Present for Duty / On Hand).";
-            break;
-          case "leave":
-            list = list.filter(p => p.flags.isLeave);
-            subtitle = "Status: Leave.";
-            break;
-          case "tad":
-            list = list.filter(p => p.flags.isTad);
-            subtitle = "Status: TAD.";
-            break;
-          case "med":
-            list = list.filter(p => p.flags.isMedical);
-            subtitle = "Medical / Light / Limited duty.";
-            break;
-          case "currentOps":
-            list = list.filter(p => p.flags.isCommittedCurrent);
-            subtitle = "Committed to current operations.";
-            break;
-          case "futureOps":
-            list = list.filter(p => p.flags.isCommittedFuture);
-            subtitle = "Committed to future operations.";
-            break;
-          default:
-            subtitle = "All Marines within MOS.";
-        }
-      } else if (type === "unitAgg") {
-        const unit = ds.unit;
-        list = personnel.filter(p => (p.unit || "UNK") === unit);
-        title = `Unit: ${unit}`;
-        switch (ds.key) {
-          case "available":
-            list = list.filter(p => p.flags.isAvailable);
-            subtitle = "Available Marines in this unit.";
-            break;
-          case "notAvailable":
-            list = list.filter(p => !p.flags.isAvailable);
-            subtitle = "Not available in this unit.";
-            break;
-          case "ops":
-            list = list.filter(p => p.flags.isCommittedCurrent || p.flags.isCommittedFuture);
-            subtitle = "Committed to operations in this unit.";
-            break;
-          default:
-            subtitle = "All Marines in this unit.";
-        }
-      } else if (type === "unitElem" || type === "squadAgg") {
-        const { unit, section, squad, team, key } = ds;
-        list = personnel.filter(p =>
-          (p.unit || "UNK") === unit &&
-          (section ? (p.section || "UNK") === section : true) &&
-          (squad ? (p.squad || "UNK") === squad : true) &&
-          (team ? (p.team || "UNK") === team : true)
-        );
-        title = `Element: ${unit}${section ? " / " + section : ""}${squad ? " / " + squad : ""}${team ? " / " + team : ""}`;
-        switch (key) {
-          case "available":
-            list = list.filter(p => p.flags.isAvailable);
-            subtitle = "Available in this element.";
-            break;
-          case "notAvailable":
-            list = list.filter(p => !p.flags.isAvailable);
-            subtitle = "Not available in this element.";
-            break;
-          case "ops":
-            list = list.filter(p => p.flags.isCommittedCurrent || p.flags.isCommittedFuture);
-            subtitle = "Committed to operations in this element.";
-            break;
-          default:
-            subtitle = "All Marines in this element.";
-        }
-      }
+  function buildDetailTable(list) {
+    const table = document.createElement("table");
+    const thead = document.createElement("thead");
+    const tbody = document.createElement("tbody");
 
-      openDetailModal(title, subtitle, list);
-    }
+    thead.innerHTML = `
+      <tr>
+        <th>Name</th>
+        <th>Rank</th>
+        <th>MOS</th>
+        <th>Unit / Sec / Sq / Team</th>
+        <th>Status</th>
+        <th>Current Op</th>
+        <th>Future Op</th>
+      </tr>
+    `;
 
-    function buildDetailTable(list) {
-      const table = document.createElement("table");
-      const thead = document.createElement("thead");
-      const tbody = document.createElement("tbody");
+    list.forEach(p => {
+      const tr = document.createElement("tr");
+      const name = `${p.lastName}, ${p.firstName}`;
+      const chain = [
+        p.unit || "—",
+        p.section || "—",
+        p.squad || "—",
+        p.team || "—"
+      ].join(" / ");
 
-      thead.innerHTML = `
-        <tr>
-          <th>Name</th>
-          <th>Rank</th>
-          <th>MOS</th>
-          <th>Unit / Sec / Sq / Team</th>
-          <th>Status</th>
-          <th>Current Op</th>
-          <th>Future Op</th>
-        </tr>
+      tr.innerHTML = `
+        <td>${name}</td>
+        <td>${p.rank || ""}</td>
+        <td>${p.mos || ""}</td>
+        <td>${chain}</td>
+        <td>${p.statusRaw || ""}</td>
+        <td>${p.currentOp || ""}</td>
+        <td>${p.futureOp || ""}</td>
       `;
+      tbody.appendChild(tr);
+    });
 
-      list.forEach(p => {
-        const tr = document.createElement("tr");
-        const name = `${p.lastName}, ${p.firstName}`;
-        const chain = [
-          p.unit || "—",
-          p.section || "—",
-          p.squad || "—",
-          p.team || "—"
-        ].join(" / ");
+    table.appendChild(thead);
+    table.appendChild(tbody);
+    return table;
+  }
 
-        tr.innerHTML = `
-          <td>${name}</td>
-          <td>${p.rank || ""}</td>
-          <td>${p.mos || ""}</td>
-          <td>${chain}</td>
-          <td>${p.statusRaw || ""}</td>
-          <td>${p.currentOp || ""}</td>
-          <td>${p.futureOp || ""}</td>
-        `;
-        tbody.appendChild(tr);
-      });
+  function openDetailModal(title, subtitle, list) {
+    detailList = list.slice();
+    detailCurrentPage = 1;
+    el.detailTitle.textContent = title || "Detail View";
+    el.detailSubtitle.textContent = subtitle || "";
+    el.detailCount.textContent = `${detailList.length} Marines`;
+    renderDetailPage();
+    el.modalBackdrop.classList.add("show");
+  }
 
-      table.appendChild(thead);
-      table.appendChild(tbody);
-      return table;
+  function openDualDetailModal(title, positiveLabel, negativeLabel, positiveList, negativeList) {
+    el.detailTitle.textContent = title || "Detail View";
+    el.detailSubtitle.textContent =
+      `${positiveLabel}: ${positiveList.length} | ${negativeLabel}: ${negativeList.length}`;
+    el.detailCount.textContent = `${positiveList.length + negativeList.length} Marines`;
+
+    el.detailBody.innerHTML = "";
+
+    const makeSectionHeader = (label, count) => {
+      const div = document.createElement("div");
+      div.textContent = `${label} (${count})`;
+      div.style.fontFamily = "Rajdhani, system-ui";
+      div.style.textTransform = "uppercase";
+      div.style.letterSpacing = "0.16em";
+      div.style.fontSize = "0.7rem";
+      div.style.color = "var(--accent-amber)";
+      div.style.margin = "6px 0 4px";
+      return div;
+    };
+
+    // Positive list
+    el.detailBody.appendChild(makeSectionHeader(positiveLabel, positiveList.length));
+    if (positiveList.length) {
+      el.detailBody.appendChild(buildDetailTable(positiveList));
+    } else {
+      const empty = document.createElement("div");
+      empty.className = "empty-state";
+      empty.textContent = "No Marines in this group.";
+      el.detailBody.appendChild(empty);
     }
 
-    function openDetailModal(title, subtitle, list) {
-      detailList = list.slice();
-      detailCurrentPage = 1;
-      el.detailTitle.textContent = title || "Detail View";
-      el.detailSubtitle.textContent = subtitle || "";
-      el.detailCount.textContent = `${detailList.length} Marines`;
-      renderDetailPage();
-      el.modalBackdrop.classList.add("show");
+    // Negative list
+    el.detailBody.appendChild(makeSectionHeader(negativeLabel, negativeList.length));
+    if (negativeList.length) {
+      el.detailBody.appendChild(buildDetailTable(negativeList));
+    } else {
+      const empty = document.createElement("div");
+      empty.className = "empty-state";
+      empty.textContent = "No Marines in this group.";
+      el.detailBody.appendChild(empty);
     }
 
-    function openDualDetailModal(title, positiveLabel, negativeLabel, positiveList, negativeList) {
-      el.detailTitle.textContent = title || "Detail View";
-      el.detailSubtitle.textContent =
-        `${positiveLabel}: ${positiveList.length} | ${negativeLabel}: ${negativeList.length}`;
-      el.detailCount.textContent = `${positiveList.length + negativeList.length} Marines`;
+    // Dual view = no paging
+    el.pageInfo.textContent = "Page 1 / 1";
+    el.btnPrev.disabled = true;
+    el.btnNext.disabled = true;
 
-      el.detailBody.innerHTML = "";
+    el.modalBackdrop.classList.add("show");
+  }
 
-      const makeSectionHeader = (label, count) => {
-        const div = document.createElement("div");
-        div.textContent = `${label} (${count})`;
-        div.style.fontFamily = "Rajdhani, system-ui";
-        div.style.textTransform = "uppercase";
-        div.style.letterSpacing = "0.16em";
-        div.style.fontSize = "0.7rem";
-        div.style.color = "var(--accent-amber)";
-        div.style.margin = "6px 0 4px";
-        return div;
-      };
+  function renderDetailPage() {
+    const total = detailList.length;
+    el.detailBody.innerHTML = "";
 
-      // Positive list
-      el.detailBody.appendChild(makeSectionHeader(positiveLabel, positiveList.length));
-      if (positiveList.length) {
-        el.detailBody.appendChild(buildDetailTable(positiveList));
-      } else {
-        const empty = document.createElement("div");
-        empty.className = "empty-state";
-        empty.textContent = "No Marines in this group.";
-        el.detailBody.appendChild(empty);
-      }
-
-      // Negative list
-      el.detailBody.appendChild(makeSectionHeader(negativeLabel, negativeList.length));
-      if (negativeList.length) {
-        el.detailBody.appendChild(buildDetailTable(negativeList));
-      } else {
-        const empty = document.createElement("div");
-        empty.className = "empty-state";
-        empty.textContent = "No Marines in this group.";
-        el.detailBody.appendChild(empty);
-      }
-
-      // Dual view = no paging
-      el.pageInfo.textContent = "Page 1 / 1";
+    if (!total) {
+      el.detailBody.innerHTML =
+        '<div class="empty-state">No Marines match this filter.</div>';
+      el.pageInfo.textContent = "Page 0 / 0";
       el.btnPrev.disabled = true;
       el.btnNext.disabled = true;
-
-      el.modalBackdrop.classList.add("show");
+      return;
     }
 
-    function renderDetailPage() {
-      const total = detailList.length;
-      el.detailBody.innerHTML = "";
+    const totalPages = Math.ceil(total / detailPageSize);
+    if (detailCurrentPage < 1) detailCurrentPage = 1;
+    if (detailCurrentPage > totalPages) detailCurrentPage = totalPages;
 
-      if (!total) {
-        el.detailBody.innerHTML =
-          '<div class="empty-state">No Marines match this filter.</div>';
-        el.pageInfo.textContent = "Page 0 / 0";
-        el.btnPrev.disabled = true;
-        el.btnNext.disabled = true;
-        return;
-      }
+    const start = (detailCurrentPage - 1) * detailPageSize;
+    const end = Math.min(start + detailPageSize, total);
+    const pageItems = detailList.slice(start, end);
 
-      const totalPages = Math.ceil(total / detailPageSize);
-      if (detailCurrentPage < 1) detailCurrentPage = 1;
-      if (detailCurrentPage > totalPages) detailCurrentPage = totalPages;
+    const table = buildDetailTable(pageItems);
+    el.detailBody.appendChild(table);
 
-      const start = (detailCurrentPage - 1) * detailPageSize;
-      const end = Math.min(start + detailPageSize, total);
-      const pageItems = detailList.slice(start, end);
+    el.pageInfo.textContent = `Page ${detailCurrentPage} / ${totalPages}`;
+    el.btnPrev.disabled = detailCurrentPage <= 1;
+    el.btnNext.disabled = detailCurrentPage >= totalPages;
+  }
 
-      const table = buildDetailTable(pageItems);
-      el.detailBody.appendChild(table);
+  function closeDetailModal() {
+    el.modalBackdrop.classList.remove("show");
+  }
 
-      el.pageInfo.textContent = `Page ${detailCurrentPage} / ${totalPages}`;
-      el.btnPrev.disabled = detailCurrentPage <= 1;
-      el.btnNext.disabled = detailCurrentPage >= totalPages;
-    }
-
-    function closeDetailModal() {
-      el.modalBackdrop.classList.remove("show");
-    }
-
-    function wireKpiClicks() {
-      // CARD CLICKS (single positive list)
-      document.getElementById("cardTotal").addEventListener("click", () =>
-        openDetailModal("All Marines", "All Marines records loaded from the CSV.", personnel)
-      );
-      document.getElementById("cardAvailable").addEventListener("click", () =>
-        openDetailModal(
-          "Available Marines",
-          "Status Present for Duty / On Hand.",
-          personnel.filter(p => p.flags.isAvailable)
-        )
-      );
-      document.getElementById("cardLeave").addEventListener("click", () =>
-        openDetailModal(
-          "On Leave",
-          "Status indicates Leave.",
-          personnel.filter(p => p.flags.isLeave)
-        )
-      );
-      document.getElementById("cardTad").addEventListener("click", () =>
-        openDetailModal(
-          "TAD Marines",
-          "Status indicates TAD.",
-          personnel.filter(p => p.flags.isTad)
-        )
-      );
-      document.getElementById("cardMed").addEventListener("click", () =>
-        openDetailModal(
-          "Medical / Light / Limited Duty",
-          "Status indicates Medical / Light / Limited duty.",
-          personnel.filter(p => p.flags.isMedical)
-        )
-      );
-      document.getElementById("cardOps").addEventListener("click", () =>
-        openDetailModal(
-          "Committed to Operations",
-          "Marines committed to current and/or future operations.",
-          personnel.filter(p => p.flags.isCommittedCurrent || p.flags.isCommittedFuture)
-        )
-      );
-      document.getElementById("cardMission").addEventListener("click", () =>
-        openDetailModal(
-          "Mission Ready Marines",
-          "Available, not medical, and not committed to operations.",
-          personnel.filter(p =>
-            p.flags.isAvailable &&
-            !p.flags.isMedical &&
-            !p.flags.isCommittedCurrent &&
-            !p.flags.isCommittedFuture
-          )
-        )
-      );
-
-      document.getElementById("cardDrvTrain").addEventListener("click", () => {
-        const list = personnel.filter(p =>
-          isTrainedValue(p.full["HUMVEE LICENSE"]) ||
-          isTrainedValue(p.full["JLTV LICENSE"])
-        );
-        openDetailModal("Driver Qualified", "HUMVEE or JLTV license recorded.", list);
-      });
-
-      document.getElementById("cardTcccTrain").addEventListener("click", () => {
-        const list = personnel.filter(p =>
-          isTrainedValue(p.full["TCCC TIER 1"]) ||
-          isTrainedValue(p.full["TCCC TIER 2"]) ||
-          isTrainedValue(p.full["TCCC TIER 3"]) ||
-          isTrainedValue(p.full["TCCC TIER 4"])
-        );
-        openDetailModal("TCCC Qualified", "Any TCCC tier recorded.", list);
-      });
-
-      document.getElementById("cardLdrTrain").addEventListener("click", () => {
-        const list = personnel.filter(p =>
-          isTrainedValue(p.full["CORPORALS COURSE"]) ||
-          isTrainedValue(p.full["SERGEANT SCHOOL"])
-        );
-        openDetailModal("Leadership Courses", "Corporals Course or Sergeant School completed.", list);
-      });
-
-      trainingFields.forEach(tf => {
-        const card = document.getElementById(`card${tf.id}`);
-        if (!card) return;
-        card.addEventListener("click", () => {
-          const list = personnel.filter(p => isTrainedValue(p.full[tf.col]));
-          openDetailModal(tf.label, `${tf.label} recorded.`, list);
-        });
-      });
-
-      // KPI NUMBER BUTTONS for Current / Future Ops
-      el.kpiOpsCurrent.addEventListener("click", (e) => {
-        e.stopPropagation();
-        openDetailModal(
-          "Current Operations",
-          "Committed to current operations.",
-          personnel.filter(p => p.flags.isCommittedCurrent)
-        );
-      });
-      el.kpiOpsFuture.addEventListener("click", (e) => {
-        e.stopPropagation();
-        openDetailModal(
-          "Future Operations",
-          "Committed to future operations.",
-          personnel.filter(p => p.flags.isCommittedFuture)
-        );
-      });
-
-      // PERCENTAGE CLICKS (dual lists)
-      el.kpiAvailablePct.style.cursor = "pointer";
-      el.kpiAvailablePct.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const positives = personnel.filter(p => p.flags.isAvailable);
-        const negatives = personnel.filter(p => !p.flags.isAvailable);
-        openDualDetailModal(
-          "Available Status",
-          "Available",
-          "Not Available",
-          positives,
-          negatives
-        );
-      });
-
-      el.kpiMissionPct.style.cursor = "pointer";
-      el.kpiMissionPct.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const positives = personnel.filter(p =>
+  function wireKpiClicks() {
+    // CARD CLICKS (single positive list)
+    document.getElementById("cardTotal").addEventListener("click", () =>
+      openDetailModal("All Marines", "All Marines records loaded from the CSV.", personnel)
+    );
+    document.getElementById("cardAvailable").addEventListener("click", () =>
+      openDetailModal(
+        "Available Marines",
+        "Status Present for Duty / On Hand.",
+        personnel.filter(p => p.flags.isAvailable)
+      )
+    );
+    document.getElementById("cardLeave").addEventListener("click", () =>
+      openDetailModal(
+        "On Leave",
+        "Status indicates Leave.",
+        personnel.filter(p => p.flags.isLeave)
+      )
+    );
+    document.getElementById("cardTad").addEventListener("click", () =>
+      openDetailModal(
+        "TAD Marines",
+        "Status indicates TAD.",
+        personnel.filter(p => p.flags.isTad)
+      )
+    );
+    document.getElementById("cardMed").addEventListener("click", () =>
+      openDetailModal(
+        "Medical / Light / Limited Duty",
+        "Status indicates Medical / Light / Limited duty.",
+        personnel.filter(p => p.flags.isMedical)
+      )
+    );
+    document.getElementById("cardOps").addEventListener("click", () =>
+      openDetailModal(
+        "Committed to Operations",
+        "Marines committed to current and/or future operations.",
+        personnel.filter(p => p.flags.isCommittedCurrent || p.flags.isCommittedFuture)
+      )
+    );
+    document.getElementById("cardMission").addEventListener("click", () =>
+      openDetailModal(
+        "Mission Ready Marines",
+        "Available, not medical, and not committed to operations.",
+        personnel.filter(p =>
           p.flags.isAvailable &&
           !p.flags.isMedical &&
           !p.flags.isCommittedCurrent &&
           !p.flags.isCommittedFuture
-        );
-        const negatives = personnel.filter(p =>
-          !(
-            p.flags.isAvailable &&
-            !p.flags.isMedical &&
-            !p.flags.isCommittedCurrent &&
-            !p.flags.isCommittedFuture
-          )
-        );
-        openDualDetailModal(
-          "Mission Ready Status",
-          "Mission Ready",
-          "Not Mission Ready",
-          positives,
-          negatives
-        );
-      });
+        )
+      )
+    );
 
-      el.kpiDrvPctValue.style.cursor = "pointer";
-      el.kpiDrvPctValue.addEventListener("click", (e) => {
+    document.getElementById("cardDrvTrain").addEventListener("click", () => {
+      const list = personnel.filter(p =>
+        isTrainedValue(p.full["HUMVEE LICENSE"]) ||
+        isTrainedValue(p.full["JLTV LICENSE"])
+      );
+      openDetailModal("Driver Qualified", "HUMVEE or JLTV license recorded.", list);
+    });
+
+    document.getElementById("cardTcccTrain").addEventListener("click", () => {
+      const list = personnel.filter(p =>
+        isTrainedValue(p.full["TCCC TIER 1"]) ||
+        isTrainedValue(p.full["TCCC TIER 2"]) ||
+        isTrainedValue(p.full["TCCC TIER 3"]) ||
+        isTrainedValue(p.full["TCCC TIER 4"])
+      );
+      openDetailModal("TCCC Qualified", "Any TCCC tier recorded.", list);
+    });
+
+    document.getElementById("cardLdrTrain").addEventListener("click", () => {
+      const list = personnel.filter(p =>
+        isTrainedValue(p.full["CORPORALS COURSE"]) ||
+        isTrainedValue(p.full["SERGEANT SCHOOL"])
+      );
+      openDetailModal("Leadership Courses", "Corporals Course or Sergeant School completed.", list);
+    });
+
+    trainingFields.forEach(tf => {
+      const card = document.getElementById(`card${tf.id}`);
+      if (!card) return;
+      card.addEventListener("click", () => {
+        const list = personnel.filter(p => isTrainedValue(p.full[tf.col]));
+        openDetailModal(tf.label, `${tf.label} recorded.`, list);
+      });
+    });
+
+    // KPI NUMBER BUTTONS for Current / Future Ops
+    el.kpiOpsCurrent.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openDetailModal(
+        "Current Operations",
+        "Committed to current operations.",
+        personnel.filter(p => p.flags.isCommittedCurrent)
+      );
+    });
+    el.kpiOpsFuture.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openDetailModal(
+        "Future Operations",
+        "Committed to future operations.",
+        personnel.filter(p => p.flags.isCommittedFuture)
+      );
+    });
+
+    // PERCENTAGE CLICKS (dual lists)
+    el.kpiAvailablePct.style.cursor = "pointer";
+    el.kpiAvailablePct.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const positives = personnel.filter(p => p.flags.isAvailable);
+      const negatives = personnel.filter(p => !p.flags.isAvailable);
+      openDualDetailModal(
+        "Available Status",
+        "Available",
+        "Not Available",
+        positives,
+        negatives
+      );
+    });
+
+    el.kpiMissionPct.style.cursor = "pointer";
+    el.kpiMissionPct.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const positives = personnel.filter(p =>
+        p.flags.isAvailable &&
+        !p.flags.isMedical &&
+        !p.flags.isCommittedCurrent &&
+        !p.flags.isCommittedFuture
+      );
+      const negatives = personnel.filter(p =>
+        !(
+          p.flags.isAvailable &&
+          !p.flags.isMedical &&
+          !p.flags.isCommittedCurrent &&
+          !p.flags.isCommittedFuture
+        )
+      );
+      openDualDetailModal(
+        "Mission Ready Status",
+        "Mission Ready",
+        "Not Mission Ready",
+        positives,
+        negatives
+      );
+    });
+
+    el.kpiDrvPctValue.style.cursor = "pointer";
+    el.kpiDrvPctValue.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const positives = personnel.filter(p =>
+        isTrainedValue(p.full["HUMVEE LICENSE"]) ||
+        isTrainedValue(p.full["JLTV LICENSE"])
+      );
+      const negatives = personnel.filter(p =>
+        !isTrainedValue(p.full["HUMVEE LICENSE"]) &&
+        !isTrainedValue(p.full["JLTV LICENSE"])
+      );
+      openDualDetailModal(
+        "Driver Qualification",
+        "Driver Qualified",
+        "Not Driver Qualified",
+        positives,
+        negatives
+      );
+    });
+
+    el.kpiTcccPctValue.style.cursor = "pointer";
+    el.kpiTcccPctValue.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const positives = personnel.filter(p =>
+        isTrainedValue(p.full["TCCC TIER 1"]) ||
+        isTrainedValue(p.full["TCCC TIER 2"]) ||
+        isTrainedValue(p.full["TCCC TIER 3"]) ||
+        isTrainedValue(p.full["TCCC TIER 4"])
+      );
+      const negatives = personnel.filter(p =>
+        !isTrainedValue(p.full["TCCC TIER 1"]) &&
+        !isTrainedValue(p.full["TCCC TIER 2"]) &&
+        !isTrainedValue(p.full["TCCC TIER 3"]) &&
+        !isTrainedValue(p.full["TCCC TIER 4"])
+      );
+      openDualDetailModal(
+        "TCCC Qualification",
+        "TCCC Qualified",
+        "Not TCCC Qualified",
+        positives,
+        negatives
+      );
+    });
+
+    el.kpiLdrPctValue.style.cursor = "pointer";
+    el.kpiLdrPctValue.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const positives = personnel.filter(p =>
+        isTrainedValue(p.full["CORPORALS COURSE"]) ||
+        isTrainedValue(p.full["SERGEANT SCHOOL"])
+      );
+      const negatives = personnel.filter(p =>
+        !isTrainedValue(p.full["CORPORALS COURSE"]) &&
+        !isTrainedValue(p.full["SERGEANT SCHOOL"])
+      );
+      openDualDetailModal(
+        "Leadership Courses",
+        "Leadership Trained",
+        "Not Leadership Trained",
+        positives,
+        negatives
+      );
+    });
+
+    // training field percentages
+    trainingFields.forEach(tf => {
+      const pctEl = document.getElementById(`kpi${tf.id}PctValue`);
+      if (!pctEl) return;
+      pctEl.style.cursor = "pointer";
+      pctEl.addEventListener("click", (e) => {
         e.stopPropagation();
-        const positives = personnel.filter(p =>
-          isTrainedValue(p.full["HUMVEE LICENSE"]) ||
-          isTrainedValue(p.full["JLTV LICENSE"])
-        );
-        const negatives = personnel.filter(p =>
-          !isTrainedValue(p.full["HUMVEE LICENSE"]) &&
-          !isTrainedValue(p.full["JLTV LICENSE"])
-        );
+        const positives = personnel.filter(p => isTrainedValue(p.full[tf.col]));
+        const negatives = personnel.filter(p => !isTrainedValue(p.full[tf.col]));
         openDualDetailModal(
-          "Driver Qualification",
-          "Driver Qualified",
-          "Not Driver Qualified",
+          tf.label,
+          "Completed / Trained",
+          "Not Completed",
           positives,
           negatives
         );
       });
+    });
+  }
 
-      el.kpiTcccPctValue.style.cursor = "pointer";
-      el.kpiTcccPctValue.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const positives = personnel.filter(p =>
-          isTrainedValue(p.full["TCCC TIER 1"]) ||
-          isTrainedValue(p.full["TCCC TIER 2"]) ||
-          isTrainedValue(p.full["TCCC TIER 3"]) ||
-          isTrainedValue(p.full["TCCC TIER 4"])
-        );
-        const negatives = personnel.filter(p =>
-          !isTrainedValue(p.full["TCCC TIER 1"]) &&
-          !isTrainedValue(p.full["TCCC TIER 2"]) &&
-          !isTrainedValue(p.full["TCCC TIER 3"]) &&
-          !isTrainedValue(p.full["TCCC TIER 4"])
-        );
-        openDualDetailModal(
-          "TCCC Qualification",
-          "TCCC Qualified",
-          "Not TCCC Qualified",
-          positives,
-          negatives
-        );
-      });
-
-      el.kpiLdrPctValue.style.cursor = "pointer";
-      el.kpiLdrPctValue.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const positives = personnel.filter(p =>
-          isTrainedValue(p.full["CORPORALS COURSE"]) ||
-          isTrainedValue(p.full["SERGEANT SCHOOL"])
-        );
-        const negatives = personnel.filter(p =>
-          !isTrainedValue(p.full["CORPORALS COURSE"]) &&
-          !isTrainedValue(p.full["SERGEANT SCHOOL"])
-        );
-        openDualDetailModal(
-          "Leadership Courses",
-          "Leadership Trained",
-          "Not Leadership Trained",
-          positives,
-          negatives
-        );
-      });
-
-      // training field percentages
-      trainingFields.forEach(tf => {
-        const pctEl = document.getElementById(`kpi${tf.id}PctValue`);
-        if (!pctEl) return;
-        pctEl.style.cursor = "pointer";
-        pctEl.addEventListener("click", (e) => {
-          e.stopPropagation();
-          const positives = personnel.filter(p => isTrainedValue(p.full[tf.col]));
-          const negatives = personnel.filter(p => !isTrainedValue(p.full[tf.col]));
-          openDualDetailModal(
-            tf.label,
-            "Completed / Trained",
-            "Not Completed",
-            positives,
-            negatives
-          );
-        });
-      });
-    }
-
-    function initCollapsibles() {
-      document.querySelectorAll(".section-header").forEach(header => {
-        const body = header.nextElementSibling;
-        if (!body) return;
-        header.addEventListener("click", () => {
-          body.classList.toggle("collapsed-section");
-          header.classList.toggle("collapsed");
-        });
-      });
-    }
-
-    function collapseByDefault(headerId) {
-      const header = document.getElementById(headerId);
-      if (!header) return;
+  function initCollapsibles() {
+    document.querySelectorAll(".section-header").forEach(header => {
       const body = header.nextElementSibling;
       if (!body) return;
-      body.classList.add("collapsed-section");
-      header.classList.add("collapsed");
+      header.addEventListener("click", () => {
+        body.classList.toggle("collapsed-section");
+        header.classList.toggle("collapsed");
+      });
+    });
+  }
+
+  function collapseByDefault(headerId) {
+    const header = document.getElementById(headerId);
+    if (!header) return;
+    const body = header.nextElementSibling;
+    if (!body) return;
+    body.classList.add("collapsed-section");
+    header.classList.add("collapsed");
+  }
+
+  // Modal events
+  el.btnPrev.addEventListener("click", () => {
+    if (detailCurrentPage > 1) {
+      detailCurrentPage--;
+      renderDetailPage();
     }
+  });
 
-    // Modal events
-    el.btnPrev.addEventListener("click", () => {
-      if (detailCurrentPage > 1) {
-        detailCurrentPage--;
-        renderDetailPage();
-      }
-    });
+  el.btnNext.addEventListener("click", () => {
+    const totalPages = Math.ceil(detailList.length / detailPageSize);
+    if (detailCurrentPage < totalPages) {
+      detailCurrentPage++;
+      renderDetailPage();
+    }
+  });
 
-    el.btnNext.addEventListener("click", () => {
-      const totalPages = Math.ceil(detailList.length / detailPageSize);
-      if (detailCurrentPage < totalPages) {
-        detailCurrentPage++;
-        renderDetailPage();
-      }
-    });
+  el.modalBackdrop.addEventListener("click", (e) => {
+    if (e.target === el.modalBackdrop) closeDetailModal();
+  });
 
-    el.modalBackdrop.addEventListener("click", (e) => {
-      if (e.target === el.modalBackdrop) closeDetailModal();
-    });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeDetailModal();
+  });
 
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") closeDetailModal();
-    });
+  // CSV loader
+  document.getElementById("csvFileInput").addEventListener("change", (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    el.fileName.textContent = file.name;
 
-    // CSV loader
-    document.getElementById("csvFileInput").addEventListener("change", (e) => {
-      const file = e.target.files && e.target.files[0];
-      if (!file) return;
-      el.fileName.textContent = file.name;
+    const reader = new FileReader();
+    reader.onload = evt => {
+      const text = String(evt.target.result || "");
+      const rawRows = parseCSV(text);
+      personnel = rawRows.map(normalizeRow);
 
-      const reader = new FileReader();
-      reader.onload = evt => {
-        const text = String(evt.target.result || "");
-        const rawRows = parseCSV(text);
-        personnel = rawRows.map(normalizeRow);
+      updateSummary();
+      renderMos();
+      renderUnitTable();
+      renderFullMatrix();
+      renderTeamBoard();
+    };
+    reader.readAsText(file);
+  });
 
-        updateSummary();
-        renderMos();
-        renderUnitTable();
-        renderFullMatrix();
-        renderTeamBoard();
-      };
-      reader.readAsText(file);
-    });
-
-    // init
-    wireKpiClicks();
-    initCollapsibles();
-    collapseByDefault("hdrMatrix");
-    collapseByDefault("hdrTeam");
-  </script>
+  // init
+  wireKpiClicks();
+  initCollapsibles();
+  collapseByDefault("hdrMatrix");
+  collapseByDefault("hdrTeam");
+</script>
 </body>
 </html>
+
 
